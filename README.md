@@ -1,2 +1,2 @@
-# root_access_shopify_theme
+# Root Access Shopify Theme
 Create the Root Access Website Shopify Theme
