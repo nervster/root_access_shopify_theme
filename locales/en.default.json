@@ -1,6 +1,23 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin language editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "general": {
-    "password_page": { "login_form_heading": "Enter store using password" }
+    "password_page": {
+      "login_form_heading": "Enter store using password"
+    }
   },
-  "shopify": {}
+  "shopify": {
+    "checkout": {
+      "shipping": {
+        "delivery_title": "Pick Up Location"
+      }
+    }
+  }
 }
