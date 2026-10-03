@@ -1,0 +1,18 @@
+<div class="page-width">
+  <h1>{{ collection.title }}</h1>
+  {% paginate collection.products by 24 %}
+    <ul>
+      {% for product in collection.products %}
+        <li><a href="{{ product.url }}">{{ product.title }}</a> &ndash; {{ product.price | money }}</li>
+      {% endfor %}
+    </ul>
+    {{ paginate | default_pagination }}
+  {% endpaginate %}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main.name",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,20 @@
+<div class="page-width">
+  <h1>{{ 'customer.login' | t }}</h1>
+  {% form 'customer_login' %}
+    {{ form.errors | default_errors }}
+    <label for="CustomerEmail">{{ 'customer.email' | t }}</label>
+    <input type="email" name="customer[email]" id="CustomerEmail" autocomplete="email">
+    <label for="CustomerPassword">{{ 'customer.password' | t }}</label>
+    <input type="password" name="customer[password]" id="CustomerPassword" autocomplete="current-password">
+    <button type="submit">{{ 'customer.login' | t }}</button>
+  {% endform %}
+
+  {% form 'recover_customer_password' %}
+    {{ form.errors | default_errors }}
+    <label for="RecoverEmail">{{ 'customer.email' | t }}</label>
+    <input type="email" name="email" id="RecoverEmail" autocomplete="email">
+    <button type="submit">{{ 'customer.reset_password' | t }}</button>
+  {% endform %}
+
+  <a href="{{ routes.account_register_url }}">{{ 'customer.register' | t }}</a>
+</div>

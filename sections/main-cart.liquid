@@ -1,0 +1,27 @@
+<div class="page-width">
+  <h1>{{ 'cart.title' | t }}</h1>
+  {% if cart.item_count > 0 %}
+    <form action="{{ routes.cart_url }}" method="post">
+      <ul>
+        {% for item in cart.items %}
+          <li>
+            <a href="{{ item.url }}">{{ item.title }}</a>
+            <input type="number" name="updates[]" value="{{ item.quantity }}" min="0">
+            {{ item.final_line_price | money }}
+          </li>
+        {% endfor %}
+      </ul>
+      <p>{{ 'cart.subtotal' | t }}: {{ cart.total_price | money }}</p>
+      <button type="submit" name="checkout">{{ 'cart.checkout' | t }}</button>
+    </form>
+  {% else %}
+    <p>{{ 'cart.empty' | t }}</p>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.main.name",
+  "settings": []
+}
+{% endschema %}

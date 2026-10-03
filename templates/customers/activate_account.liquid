@@ -1,0 +1,10 @@
+<div class="page-width">
+  <h1>{{ 'customer.activate_account' | t }}</h1>
+  {% form 'activate_customer_password' %}
+    {{ form.errors | default_errors }}
+    <label for="Password">{{ 'customer.password' | t }}</label>
+    <input type="password" name="customer[password]" id="Password" autocomplete="new-password">
+    <input type="password" name="customer[password_confirmation]" autocomplete="new-password">
+    <button type="submit">{{ 'customer.activate_account' | t }}</button>
+  {% endform %}
+</div>

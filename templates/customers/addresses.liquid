@@ -1,0 +1,10 @@
+<div class="page-width">
+  <h1>{{ 'customer.addresses' | t }}</h1>
+  {% paginate customer.addresses by 10 %}
+    {% for address in customer.addresses %}
+      <div>{{ address | format_address }}</div>
+    {% endfor %}
+    {{ paginate | default_pagination }}
+  {% endpaginate %}
+  <a href="{{ routes.account_url }}">{{ 'customer.account' | t }}</a>
+</div>
