@@ -1,0 +1,25 @@
+name: Theme check
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+jobs:
+  theme-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Shopify CLI
+        run: npm install -g @shopify/cli@4
+
+      # Errors fail the build; warnings (e.g. Google Fonts as a remote asset) are reported but allowed.
+      - name: Run theme check
+        run: shopify theme check --fail-level error
+        env:
+          SHOPIFY_CLI_NO_ANALYTICS: "1"
