@@ -1,0 +1,21 @@
+<section class="product-page">
+  <div class="wrap">
+    <a class="back-link" href="{{ routes.root_url }}#collection">Back to all plants</a>
+    {%- assign size_line = product.metafields.custom.pot_size.value | default: section.settings.size_note -%}
+    {% render 'product-detail', product: product, heading_tag: 'h1', size_note: size_line, context: 'page' %}
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% schema %}
+{
+  "name": "Product",
+  "class": "section-product",
+  "settings": [
+    { "type": "text", "id": "size_note", "label": "Default size note", "default": "Established plant, 3–4\" pot" }
+  ]
+}
+{% endschema %}

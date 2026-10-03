@@ -1,0 +1,13 @@
+<section class="basic-page">
+  <div class="wrap">
+    <h1 class="section-title">Collections</h1>
+    <ul class="coll-list">
+      {%- for c in collections -%}
+        <li><a href="{{ c.url }}">{{ c.title }} <span class="muted">{{ c.products_count }}</span></a></li>
+      {%- endfor -%}
+    </ul>
+  </div>
+</section>
+{% schema %}
+{ "name": "Collections list", "class": "section-list-collections", "settings": [] }
+{% endschema %}

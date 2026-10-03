@@ -1,0 +1,22 @@
+<section class="basic-page">
+  <div class="wrap wrap--narrow">
+    <h1 class="section-title">{{ blog.title }}</h1>
+    {%- paginate blog.articles by 12 -%}
+      <ul class="coll-list">
+        {%- for article in blog.articles -%}
+          <li><a href="{{ article.url }}">{{ article.title }} <span class="muted">{{ article.published_at | date: '%b %d, %Y' }}</span></a></li>
+        {%- endfor -%}
+      </ul>
+      {%- if paginate.pages > 1 -%}
+        <nav class="pager" aria-label="Pagination">
+          {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}">Previous</a>{%- endif -%}
+          <span>Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+          {%- if paginate.next -%}<a href="{{ paginate.next.url }}">Next</a>{%- endif -%}
+        </nav>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+{% schema %}
+{ "name": "Blog", "class": "section-blog", "settings": [] }
+{% endschema %}

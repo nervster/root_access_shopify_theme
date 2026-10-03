@@ -1,0 +1,38 @@
+<section class="basic-page">
+  <div class="wrap">
+    <h1 class="section-title">Search</h1>
+    <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
+      <input type="hidden" name="type" value="product">
+      <label class="visually-hidden" for="SearchQ">Search plants</label>
+      <input id="SearchQ" class="field__input" type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search plants">
+      <button class="btn btn--solid" type="submit">Search</button>
+    </form>
+    {%- if search.performed -%}
+      {%- paginate search.results by 24 -%}
+        {%- if search.results_count == 0 -%}
+          <p class="search-empty">No plants match &ldquo;{{ search.terms | escape }}&rdquo;. Try a different name, or <a href="{{ routes.root_url }}#collection">browse all plants</a>.</p>
+        {%- else -%}
+          <p class="collection__count">{{ search.results_count }} result{% if search.results_count != 1 %}s{% endif %}</p>
+          <div class="grid">
+            {%- for item in search.results -%}
+              {%- if item.object_type == 'product' -%}
+                {%- assign idx = paginate.current_offset | plus: forloop.index -%}
+                {% render 'product-card', product: item, index: idx, size_note: '', badge_default: 'The green collection' %}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+          {%- if paginate.pages > 1 -%}
+            <nav class="pager" aria-label="Pagination">
+              {%- if paginate.previous -%}<a href="{{ paginate.previous.url }}">Previous</a>{%- endif -%}
+              <span>Page {{ paginate.current_page }} of {{ paginate.pages }}</span>
+              {%- if paginate.next -%}<a href="{{ paginate.next.url }}">Next</a>{%- endif -%}
+            </nav>
+          {%- endif -%}
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{ "name": "Search", "class": "section-search", "settings": [] }
+{% endschema %}

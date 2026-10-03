@@ -1,0 +1,19 @@
+{%- if section.settings.left != blank or section.settings.right != blank -%}
+<div class="announce">
+  <div class="wrap announce__inner">
+    <span>{{ section.settings.left }}</span>
+    <span class="announce__right">{{ section.settings.right }}</span>
+  </div>
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Announcement bar",
+  "class": "section-announce",
+  "settings": [
+    { "type": "text", "id": "left", "label": "Left text", "default": "Local Houston Pickup" },
+    { "type": "text", "id": "right", "label": "Right text", "default": "Pick up whenever you like, day or night" }
+  ]
+}
+{% endschema %}

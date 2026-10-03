@@ -1,0 +1,9 @@
+<section class="basic-page"><div class="wrap wrap--narrow">
+  <h1 class="section-title">Activate account</h1>
+  {%- form 'activate_customer_password', class: 'stack' -%}
+    {{ form.errors | default_errors }}
+    <label class="field"><span class="field__label">Password</span><input class="field__input" type="password" name="customer[password]" autocomplete="new-password" required></label>
+    <label class="field"><span class="field__label">Confirm password</span><input class="field__input" type="password" name="customer[password_confirmation]" autocomplete="new-password" required></label>
+    <button class="btn btn--solid btn--block" type="submit">Activate</button>
+  {%- endform -%}
+</div></section>

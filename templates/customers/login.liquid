@@ -1,0 +1,15 @@
+<section class="basic-page"><div class="wrap wrap--narrow">
+  <h1 class="section-title">Sign in</h1>
+  {%- form 'customer_login', class: 'stack' -%}
+    {{ form.errors | default_errors }}
+    <label class="field"><span class="field__label">Email</span><input class="field__input" type="email" name="customer[email]" autocomplete="email" required></label>
+    <label class="field"><span class="field__label">Password</span><input class="field__input" type="password" name="customer[password]" autocomplete="current-password" required></label>
+    <button class="btn btn--solid btn--block" type="submit">Sign in</button>
+  {%- endform -%}
+  <p><a class="card__link" href="{{ routes.account_register_url }}">Create an account</a></p>
+  {%- form 'recover_customer_password', class: 'stack' -%}
+    {%- if form.posted_successfully? -%}<p>Check your email for a reset link.</p>{%- endif -%}
+    <label class="field"><span class="field__label">Forgot your password? Enter your email</span><input class="field__input" type="email" name="email" autocomplete="email"></label>
+    <button class="btn btn--outline btn--block" type="submit">Send reset link</button>
+  {%- endform -%}
+</div></section>

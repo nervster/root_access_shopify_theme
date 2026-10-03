@@ -1,0 +1,17 @@
+{%- comment -%}
+  Renders the Root Access logo on its white tile.
+  Uses an uploaded logo (Theme settings > Logo) when present; otherwise
+  the bundled mascot plus a typeset wordmark.
+  Accepts: size ('lg' | 'md')
+{%- endcomment -%}
+<a href="{{ routes.root_url }}" class="logo-tile logo-tile--{{ size | default: 'lg' }}" aria-label="{{ shop.name }} home">
+  {%- if settings.logo != blank -%}
+    {{ settings.logo | image_url: width: 600 | image_tag: class: 'logo-tile__full', alt: shop.name, loading: 'eager', widths: '200, 400, 600' }}
+  {%- else -%}
+    <img class="logo-tile__mascot" src="{{ 'ra-mascot.png' | asset_url }}" alt="" width="240" height="240" loading="eager">
+    <span class="logo-tile__word">
+      <span class="logo-tile__root">ROOT</span>
+      <span class="logo-tile__access">ACCESS</span>
+    </span>
+  {%- endif -%}
+</a>

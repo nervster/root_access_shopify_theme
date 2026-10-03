@@ -1,0 +1,4 @@
+{
+  "sections": { "main": { "type": "plant-collection", "settings": {} } },
+  "order": ["main"]
+}

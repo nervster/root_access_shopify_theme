@@ -1,0 +1,14 @@
+{%- comment -%} Restock signup. Adds the email to Shopify customers, tagged newsletter + restock-alert. Accepts: form_id {%- endcomment -%}
+{%- form 'customer', id: form_id, class: 'notify' -%}
+  <input type="hidden" name="contact[tags]" value="newsletter, restock-alert">
+  {%- if form.posted_successfully? -%}
+    <p class="notify__ok" role="status">You're on the list. We'll email you when new plants are ready.</p>
+  {%- else -%}
+    <label class="notify__label" for="{{ form_id }}-email">Get an email when new plants are ready</label>
+    <div class="notify__row">
+      <input id="{{ form_id }}-email" class="notify__input" type="email" name="contact[email]" autocomplete="email" placeholder="you@example.com" required>
+      <button type="submit" class="btn btn--solid">Notify me</button>
+    </div>
+    {%- if form.errors -%}<p class="notify__err" role="alert">{{ form.errors | default_errors }}</p>{%- endif -%}
+  {%- endif -%}
+{%- endform -%}

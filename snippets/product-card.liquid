@@ -1,0 +1,61 @@
+{%- comment -%}
+  Accepts: product, index (number), size_note (string), badge_default (string)
+{%- endcomment -%}
+{%- liquid
+  assign code = index | prepend: '00' | slice: -3, 3
+  assign genus = product.type | default: product.vendor
+  assign badge = badge_default | default: 'The green collection'
+  for tag in product.tags
+    assign t = tag | downcase
+    if t == 'variegated'
+      assign badge = 'Variegated'
+    endif
+  endfor
+  assign size_line = product.metafields.custom.pot_size.value | default: size_note
+  assign price_bucket = product.price | divided_by: 100
+  assign card_form_id = 'CardForm-' | append: product.id
+-%}
+<article class="card{% unless product.available %} is-soldout{% endunless %}" data-price="{{ price_bucket }}">
+  <a class="card__media" href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">
+    {%- if product.featured_image -%}
+      {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '360, 540, 720, 900', sizes: '(min-width: 1000px) 33vw, (min-width: 560px) 50vw, 100vw', alt: product.featured_image.alt | default: product.title }}
+    {%- else -%}
+      <img src="{{ 'ra-mascot.png' | asset_url }}" alt="" class="card__placeholder" loading="lazy" width="240" height="240">
+    {%- endif -%}
+    <span class="tag">{{ badge }}</span>
+    {%- unless product.available -%}<span class="tag tag--soldout">Sold out</span>{%- endunless -%}
+  </a>
+  <div class="card__body">
+    <div class="card__meta mono">
+      <span>RA >/ {{ code }}</span>
+      {%- if genus != blank -%}<span>{{ genus | upcase }}</span>{%- endif -%}
+    </div>
+    <div class="card__title-row">
+      <h3 class="card__title"><a href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">{{ product.title }}</a></h3>
+      {% render 'price-mono', product: product %}
+    </div>
+    {%- if size_line != blank -%}<p class="card__note">{{ size_line }}</p>{%- endif -%}
+    <a class="card__link" href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">
+      {%- if product.images.size > 1 -%}See what it can grow into{%- else -%}View details{%- endif -%}
+    </a>
+    {%- if product.available -%}
+      {%- if product.has_only_default_variant -%}
+        {%- form 'product', product, id: card_form_id, class: 'card__form', data-add-form: '' -%}
+          <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+          <button type="submit" class="btn btn--outline btn--block">Add to cart</button>
+        {%- endform -%}
+      {%- else -%}
+        <div class="card__form">
+          <button type="button" class="btn btn--outline btn--block" data-open-dialog="ProductDialog-{{ product.id }}">Choose an option</button>
+        </div>
+      {%- endif -%}
+    {%- else -%}
+      <button type="button" class="btn btn--outline btn--block" disabled>Sold out</button>
+    {%- endif -%}
+  </div>
+
+  <dialog class="product-dialog" id="ProductDialog-{{ product.id }}" aria-label="{{ product.title | escape }}">
+    <button type="button" class="dialog-close" data-close-dialog aria-label="Close">&times;</button>
+    {% render 'product-detail', product: product, heading_tag: 'h2', size_note: size_line, context: 'dialog' %}
+  </dialog>
+</article>

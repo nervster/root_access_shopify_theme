@@ -1,0 +1,101 @@
+{%- comment -%}
+  Shared detail layout for the product page and the quick-view dialog.
+  Accepts: product, heading_tag, size_note, context, tagline, pickup_note
+{%- endcomment -%}
+{%- liquid
+  assign genus = product.type | default: product.vendor
+  assign current = product.selected_or_first_available_variant
+  assign uid = context | append: '-' | append: product.id
+  assign tag = heading_tag | default: 'h1'
+  assign tagline_text = tagline | default: settings.detail_tagline
+  assign pickup_text = pickup_note | default: settings.pickup_note
+-%}
+<div class="detail" data-detail>
+  <div class="detail__gallery">
+    <div class="detail__stage">
+      {%- if product.images.size > 0 -%}
+        {%- for image in product.images -%}
+          <figure class="detail__frame{% if forloop.first %} is-active{% endif %}" data-frame="{{ forloop.index0 }}" {% unless forloop.first %}hidden{% endunless %}>
+            {{ image | image_url: width: 1200 | image_tag: loading: 'lazy', widths: '480, 720, 960, 1200', sizes: '(min-width: 900px) 45vw, 100vw', alt: image.alt | default: product.title }}
+          </figure>
+        {%- endfor -%}
+      {%- else -%}
+        <figure class="detail__frame is-active detail__frame--empty">
+          <img src="{{ 'ra-mascot.png' | asset_url }}" alt="" width="240" height="240" loading="lazy">
+        </figure>
+      {%- endif -%}
+    </div>
+
+    {%- if product.images.size > 1 -%}
+      <div class="detail__thumbs" role="tablist" aria-label="Photos">
+        {%- for image in product.images limit: 4 -%}
+          {%- liquid
+            case forloop.index
+              when 1
+                assign label = 'Your plant'
+              when 2
+                assign label = 'Grown form'
+              else
+                assign label = image.alt
+                if label == blank
+                  assign label = 'Photo ' | append: forloop.index
+                endif
+            endcase
+          -%}
+          <button type="button" class="thumb{% if forloop.first %} is-active{% endif %}" data-thumb="{{ forloop.index0 }}" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}">
+            {{ image | image_url: width: 120 | image_tag: loading: 'lazy', alt: '' }}
+            <span>{{ label }}</span>
+          </button>
+        {%- endfor -%}
+      </div>
+      <p class="detail__caption" data-caption>Your starting point</p>
+    {%- endif -%}
+  </div>
+
+  <div class="detail__info">
+    {%- if genus != blank -%}<p class="eyebrow mono">{{ genus | upcase }}</p>{%- endif -%}
+    <{{ tag }} class="detail__title">{{ product.title }}</{{ tag }}>
+    <p class="detail__price" data-price-display>{{ current.price | money_without_trailing_zeros }}</p>
+
+    {%- if product.description != blank -%}
+      <div class="detail__desc rte">{{ product.description }}</div>
+    {%- endif -%}
+
+    {%- if tagline_text != blank or size_note != blank -%}
+      <p class="detail__grow">
+        {%- if tagline_text != blank -%}<strong>{{ tagline_text }}</strong>{%- endif -%}
+        {%- if size_note != blank -%}<br>{{ size_note }}{%- endif -%}
+      </p>
+    {%- endif -%}
+
+    {%- if pickup_text != blank -%}<p class="detail__pickup">{{ pickup_text }}</p>{%- endif -%}
+
+    {%- assign form_id = 'DetailForm-' | append: uid -%}
+    {%- form 'product', product, id: form_id, class: 'detail__form', data-add-form: '' -%}
+      {%- if product.has_only_default_variant -%}
+        <input type="hidden" name="id" value="{{ current.id }}">
+      {%- else -%}
+        <label class="field">
+          <span class="field__label">Option</span>
+          <select name="id" class="field__input" data-variant-select>
+            {%- for variant in product.variants -%}
+              <option value="{{ variant.id }}" data-price="{{ variant.price | money_without_trailing_zeros }}" {% if variant == current %}selected{% endif %} {% unless variant.available %}disabled{% endunless %}>
+                {{ variant.title }}{% unless variant.available %} (sold out){% endunless %}
+              </option>
+            {%- endfor -%}
+          </select>
+        </label>
+      {%- endif -%}
+
+      {%- if product.available -%}
+        {%- if current.inventory_management == 'shopify' and current.inventory_quantity > 0 and current.inventory_quantity <= 3 -%}
+          <p class="detail__stock">Only {{ current.inventory_quantity }} left</p>
+        {%- endif -%}
+        <button type="submit" class="btn btn--solid btn--block btn--lg">Add to cart</button>
+      {%- else -%}
+        <button type="button" class="btn btn--solid btn--block btn--lg" disabled>Sold out</button>
+        <p class="detail__stock">This one's gone for now. New specimens are added as they root.</p>
+      {%- endif -%}
+    {%- endform -%}
+  </div>
+</div>
