@@ -1,10 +1,35 @@
-<footer class="site-footer page-width">
-  <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</p>
+<section class="guarantee">
+  <div class="wrap guarantee__inner">
+    <h2 class="guarantee__title">{{ section.settings.heading_1 }}<br>{{ section.settings.heading_2 }}</h2>
+    <div class="guarantee__copy">{{ section.settings.copy }}</div>
+  </div>
+</section>
+<footer class="site-footer">
+  <div class="wrap site-footer__inner">
+    {% render 'logo-tile', size: 'md' %}
+    <p class="site-footer__note">{{ section.settings.note }}</p>
+    <nav class="site-footer__links" aria-label="Policies">
+      {%- for policy in shop.policies -%}
+        <a href="{{ policy.url }}">{{ policy.title }}</a>
+      {%- endfor -%}
+      {%- if section.settings.contact_email != blank -%}
+        <a href="mailto:{{ section.settings.contact_email }}">Contact</a>
+      {%- endif -%}
+    </nav>
+  </div>
+  <div class="wrap site-footer__legal mono">&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}</div>
 </footer>
 
 {% schema %}
 {
-  "name": "t:sections.footer.name",
-  "settings": []
+  "name": "Footer",
+  "class": "section-footer",
+  "settings": [
+    { "type": "text", "id": "heading_1", "label": "Guarantee heading line 1", "default": "Engineered with care." },
+    { "type": "text", "id": "heading_2", "label": "Guarantee heading line 2", "default": "Grown for people." },
+    { "type": "richtext", "id": "copy", "label": "Guarantee copy", "default": "<p>If your plant is damaged or isn’t to your satisfaction at pickup, we’ll offer a replacement. If one isn’t available, we’ll offer a full refund.</p>" },
+    { "type": "text", "id": "note", "label": "Footer note", "default": "Grown with care in Houston, Texas." },
+    { "type": "text", "id": "contact_email", "label": "Contact email (optional)" }
+  ]
 }
 {% endschema %}

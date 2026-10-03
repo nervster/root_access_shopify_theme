@@ -1,0 +1,8 @@
+{%- comment -%} Accepts: product {%- endcomment -%}
+<span class="price-mono">
+  {%- if product.price_varies -%}
+    {{ product.price_min | money_without_trailing_zeros }}+
+  {%- else -%}
+    {{ product.price | money_without_trailing_zeros }}
+  {%- endif -%}
+</span>

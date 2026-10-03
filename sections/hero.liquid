@@ -1,0 +1,129 @@
+{%- liquid
+  assign available_count = 0
+  assign featured = section.settings.featured_product
+  assign first_available = nil
+  for p in collections.all.products
+    if p.available
+      assign available_count = available_count | plus: 1
+      if first_available == nil
+        assign first_available = p
+      endif
+    endif
+  endfor
+  if featured == blank or featured.available == false
+    assign featured = first_available
+  endif
+  assign featured_index = 1
+  if featured != blank
+    for p in collections.all.products
+      if p.id == featured.id
+        assign featured_index = forloop.index
+        break
+      endif
+    endfor
+  endif
+  assign prices = collections.all.products | where: 'available' | map: 'price' | sort
+  assign price_min = prices | first
+  assign price_max = prices | last
+-%}
+<section class="hero dotgrid">
+  <div class="wrap hero__inner">
+    <div class="hero__copy">
+      <p class="eyebrow mono">{{ section.settings.eyebrow }}</p>
+      <h1 class="hero__title">
+        <span>{{ section.settings.line_1 }}</span>
+        <span class="accent">{{ section.settings.line_2 }}</span>
+      </h1>
+      <p class="hero__sub">{{ section.settings.subhead }}</p>
+
+      {%- if available_count > 0 -%}
+        <a class="cta" href="#collection">
+          <span>{{ section.settings.cta_label }}</span>
+          <span class="cta__count">{{ available_count }} {% if available_count == 1 %}variety{% else %}varieties{% endif %}</span>
+        </a>
+      {%- else -%}
+        <a class="cta" href="#notify">
+          <span>Get notified</span>
+          <span class="cta__count">Out of stock</span>
+        </a>
+      {%- endif -%}
+
+      <ul class="hero__stats">
+        <li>Home grown</li>
+        {%- if available_count > 0 -%}
+          <li>
+            {%- if price_min == price_max -%}{{ price_min | money_without_trailing_zeros }}{%- else -%}{{ price_min | money_without_trailing_zeros }}–{{ price_max | money_without_trailing_zeros }}{%- endif -%}
+          </li>
+        {%- endif -%}
+        <li>24/7 local pickup</li>
+      </ul>
+    </div>
+
+    <div class="hero__card-wrap">
+      {%- if featured != blank -%}
+        <a class="specimen" href="{{ featured.url }}">
+          <div class="specimen__top mono">
+            <span>Specimen >/ {{ featured_index | prepend: '00' | slice: -3, 3 }}</span>
+            {%- assign fgenus = featured.type | default: featured.vendor -%}
+            {%- if fgenus != blank -%}<span>{{ fgenus | upcase }}</span>{%- endif -%}
+          </div>
+          <div class="specimen__media">
+            {%- if featured.featured_image -%}
+              {{ featured.featured_image | image_url: width: 1200 | image_tag: loading: 'eager', fetchpriority: 'high', widths: '600, 900, 1200', sizes: '(min-width: 900px) 40vw, 100vw', alt: featured.featured_image.alt | default: featured.title }}
+            {%- else -%}
+              <img src="{{ 'ra-mascot.png' | asset_url }}" alt="" width="240" height="240" class="specimen__placeholder">
+            {%- endif -%}
+          </div>
+          <div class="specimen__foot">
+            <div>
+              <p class="specimen__label">Featured variety</p>
+              <p class="specimen__name">{{ featured.title }}</p>
+            </div>
+            <span class="specimen__price">{{ featured.price | money_without_trailing_zeros }}</span>
+          </div>
+        </a>
+      {%- else -%}
+        <div class="specimen specimen--empty">
+          <div class="specimen__top mono">
+            <span>Specimen >/ 000</span>
+            <span>Out of stock</span>
+          </div>
+          <div class="specimen__media specimen__media--empty">
+            <img src="{{ 'ra-mascot.png' | asset_url }}" alt="" width="240" height="240" class="specimen__placeholder">
+          </div>
+          <div class="specimen__foot">
+            <div>
+              <p class="specimen__label">Restocking</p>
+              <p class="specimen__name">New specimens are rooting.</p>
+            </div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<div class="ticker">
+  <div class="wrap ticker__inner">
+    <span><b class="accent">+</b> {{ section.settings.ticker_left }}</span>
+    <span><b class="accent">+</b> {{ section.settings.ticker_right }}</span>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Hero",
+  "class": "section-hero",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Root Access >/ Houston, TX" },
+    { "type": "text", "id": "line_1", "label": "Headline line 1", "default": "Nature grows." },
+    { "type": "text", "id": "line_2", "label": "Headline line 2 (accent color)", "default": "We geek out." },
+    { "type": "textarea", "id": "subhead", "label": "Subhead", "default": "Uncommon plants. Thoughtful automation. A little engineering behind every new leaf." },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "Explore the collection" },
+    { "type": "product", "id": "featured_product", "label": "Featured plant", "info": "Falls back to the first in-stock plant if this one sells out." },
+    { "type": "text", "id": "ticker_left", "label": "Ticker left", "default": "Plants first. Technology behind the scenes." },
+    { "type": "text", "id": "ticker_right", "label": "Ticker right", "default": "Grown with care / Collected with a code" }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

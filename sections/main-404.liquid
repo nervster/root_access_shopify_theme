@@ -1,11 +1,11 @@
-<div class="page-width">
-  <h1>{{ 'not_found.title' | t }}</h1>
-  <a href="{{ routes.all_products_collection_url }}">{{ 'not_found.continue_shopping' | t }}</a>
-</div>
-
+<section class="basic-page">
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow mono">404 >/ Not found</p>
+    <h1 class="section-title">This page didn't take root.</h1>
+    <p class="rte">The link may be out of date, or that plant may have sold out.</p>
+    <a class="cta" href="{{ routes.root_url }}#collection"><span>See the plants</span></a>
+  </div>
+</section>
 {% schema %}
-{
-  "name": "t:sections.main.name",
-  "settings": []
-}
+{ "name": "404", "class": "section-404", "settings": [] }
 {% endschema %}

@@ -2,9 +2,22 @@
   {
     "name": "theme_info",
     "theme_name": "Root Access",
-    "theme_version": "0.1.0",
+    "theme_version": "1.0.0",
     "theme_author": "Root Access",
-    "theme_documentation_url": "https://shopify.dev/docs/storefronts/themes",
+    "theme_documentation_url": "https://help.shopify.com/manual/online-store/themes",
     "theme_support_url": "https://help.shopify.com"
+  },
+  {
+    "name": "Brand",
+    "settings": [
+      { "type": "image_picker", "id": "logo", "label": "Full logo (optional)", "info": "Upload the full Root Access logo with wordmark. If empty, the bundled mascot and a typeset wordmark are shown." }
+    ]
+  },
+  {
+    "name": "Product details",
+    "settings": [
+      { "type": "text", "id": "detail_tagline", "label": "Product tagline", "default": "Start small. Grow something remarkable." },
+      { "type": "text", "id": "pickup_note", "label": "Pickup line", "default": "Houston pickup · Pick up any time, day or night" }
+    ]
   }
 ]

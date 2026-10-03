@@ -1,0 +1,76 @@
+<section class="pickup" id="pickup">
+  <div class="wrap pickup__inner">
+    <figure class="pickup__media">
+      {%- if section.settings.image != blank -%}
+        {{ section.settings.image | image_url: width: 1400 | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1400', sizes: '(min-width: 900px) 45vw, 100vw', alt: section.settings.image.alt | default: 'Root Access pickup locker' }}
+      {%- else -%}
+        <svg class="pickup__art" viewBox="0 0 480 560" role="img" aria-label="Illustration of the Root Access pickup locker">
+          <rect width="480" height="560" fill="#EAF0DF"/>
+          <rect x="216" y="400" width="48" height="160" fill="#B9C6AE"/>
+          <rect x="110" y="90" width="260" height="320" rx="18" fill="#FFFFFF"/>
+          <rect x="110" y="90" width="260" height="320" rx="18" fill="none" stroke="#C9D2C6" stroke-width="3"/>
+          <rect x="150" y="150" width="150" height="210" rx="16" fill="#1D3A26"/>
+          <rect x="160" y="160" width="130" height="190" rx="10" fill="#2F3A21"/>
+          <rect x="160" y="160" width="130" height="10" fill="#CCFF77" opacity=".9"/>
+          <path d="M225 330 L225 270" stroke="#134A23" stroke-width="5"/>
+          <ellipse cx="205" cy="268" rx="26" ry="15" fill="#8DB826" transform="rotate(-25 205 268)"/>
+          <ellipse cx="248" cy="262" rx="26" ry="15" fill="#134A23" transform="rotate(25 248 262)"/>
+          <ellipse cx="226" cy="238" rx="16" ry="24" fill="#8DB826"/>
+          <path d="M200 315 h50 l-6 32 h-38 z" fill="#D27B4E"/>
+          <rect x="316" y="200" width="34" height="80" rx="6" fill="#134A23"/>
+          <g fill="#CCFF77">
+            <circle cx="326" cy="214" r="3"/><circle cx="340" cy="214" r="3"/>
+            <circle cx="326" cy="230" r="3"/><circle cx="340" cy="230" r="3"/>
+            <circle cx="326" cy="246" r="3"/><circle cx="340" cy="246" r="3"/>
+            <circle cx="326" cy="262" r="3"/><circle cx="340" cy="262" r="3"/>
+          </g>
+          <text x="240" y="132" text-anchor="middle" font-family="Inter Tight, Helvetica, Arial, sans-serif" font-weight="800" font-size="22" fill="#134A23">ROOT ACCESS</text>
+        </svg>
+      {%- endif -%}
+      <figcaption class="pickup__tag mono">{{ section.settings.image_caption }}</figcaption>
+    </figure>
+
+    <div class="pickup__copy">
+      <p class="eyebrow mono">02 >/ Pickup protocol</p>
+      <h2 class="section-title pickup__title">
+        <span>Your plant.</span>
+        <span>Your time.</span>
+        <span class="accent">Your access code.</span>
+      </h2>
+      <div class="pickup__intro">{{ section.settings.intro }}</div>
+      <ol class="steps">
+        <li class="step">
+          <span class="step__n mono">01</span>
+          <div><h3 class="step__t">{{ section.settings.step_1_title }}</h3><p class="step__d">{{ section.settings.step_1_text }}</p></div>
+        </li>
+        <li class="step">
+          <span class="step__n mono">02</span>
+          <div><h3 class="step__t">{{ section.settings.step_2_title }}</h3><p class="step__d">{{ section.settings.step_2_text }}</p></div>
+        </li>
+        <li class="step">
+          <span class="step__n mono">03</span>
+          <div><h3 class="step__t">{{ section.settings.step_3_title }}</h3><p class="step__d">{{ section.settings.step_3_text }}</p></div>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Pickup protocol",
+  "class": "section-pickup",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Locker photo" },
+    { "type": "text", "id": "image_caption", "label": "Photo caption", "default": "Root Access >/ Pickup locker" },
+    { "type": "richtext", "id": "intro", "label": "Intro", "default": "<p>Built by plant people, including a software engineer. Plants are grown at home in Houston and handed off through a locker, so you can pick up whenever you like, day or night.</p>" },
+    { "type": "text", "id": "step_1_title", "label": "Step 1 title", "default": "Select your specimen" },
+    { "type": "text", "id": "step_1_text", "label": "Step 1 text", "default": "Every listing shows the plant you're buying, plus what it can grow into." },
+    { "type": "text", "id": "step_2_title", "label": "Step 2 title", "default": "Choose your window" },
+    { "type": "text", "id": "step_2_text", "label": "Step 2 text", "default": "Pick a date and a daytime or overnight pickup window, then choose local pickup at checkout. Your locker PIN arrives by email before your window opens." },
+    { "type": "text", "id": "step_3_title", "label": "Step 3 title", "default": "Unlock. Take home. Grow." },
+    { "type": "text", "id": "step_3_text", "label": "Step 3 text", "default": "Enter your PIN, collect your plant, and check it over. Something wrong? We'll replace or refund it." }
+  ],
+  "presets": [{ "name": "Pickup protocol" }]
+}
+{% endschema %}

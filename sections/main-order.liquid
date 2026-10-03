@@ -1,0 +1,17 @@
+<section class="basic-page">
+  <div class="wrap wrap--narrow">
+    <a class="back-link" href="{{ routes.account_url }}">Back to account</a>
+    <h1 class="section-title">Order {{ order.name }}</h1>
+    <p class="rte">Placed {{ order.created_at | date: '%b %d, %Y' }}</p>
+    {%- for attr in order.attributes -%}<p>{{ attr.first }}: {{ attr.last }}</p>{%- endfor -%}
+    <ul class="coll-list">
+      {%- for li in order.line_items -%}
+        <li><span>{{ li.title }} × {{ li.quantity }}</span> <span class="muted">{{ li.final_line_price | money }}</span></li>
+      {%- endfor -%}
+    </ul>
+    <p>Total {{ order.total_price | money }}</p>
+  </div>
+</section>
+{% schema %}
+{ "name": "Order", "class": "section-order", "settings": [] }
+{% endschema %}

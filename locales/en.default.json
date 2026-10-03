@@ -1,49 +1,6 @@
 {
   "general": {
-    "page": "Page {{ page }}",
-    "password_page": {
-      "login_form_heading": "Enter store using password",
-      "login_form_password_label": "Password",
-      "login_form_submit": "Enter"
-    }
+    "password_page": { "login_form_heading": "Enter store using password" }
   },
-  "accessibility": {
-    "skip_to_content": "Skip to content"
-  },
-  "products": {
-    "add_to_cart": "Add to cart",
-    "sold_out": "Sold out"
-  },
-  "cart": {
-    "title": "Your cart",
-    "empty": "Your cart is empty",
-    "checkout": "Check out",
-    "subtotal": "Subtotal"
-  },
-  "search": {
-    "title": "Search",
-    "placeholder": "Search",
-    "submit": "Search",
-    "no_results": "No results found for \"{{ terms }}\"."
-  },
-  "not_found": {
-    "title": "Page not found",
-    "continue_shopping": "Continue shopping"
-  },
-  "customer": {
-    "login": "Log in",
-    "logout": "Log out",
-    "register": "Create account",
-    "account": "Account",
-    "email": "Email",
-    "password": "Password",
-    "first_name": "First name",
-    "last_name": "Last name",
-    "submit": "Submit",
-    "orders": "Order history",
-    "addresses": "Addresses",
-    "reset_password": "Reset password",
-    "activate_account": "Activate account",
-    "order": "Order {{ name }}"
-  }
+  "shopify": {}
 }

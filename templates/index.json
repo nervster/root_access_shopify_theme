@@ -1,6 +1,8 @@
 {
   "sections": {
-    "main": { "type": "main-index", "settings": {} }
+    "hero": { "type": "hero", "settings": {} },
+    "collection": { "type": "plant-collection", "settings": {} },
+    "pickup": { "type": "pickup", "settings": {} }
   },
-  "order": ["main"]
+  "order": ["hero", "collection", "pickup"]
 }

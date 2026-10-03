@@ -1,7 +1,0 @@
-{
-  "sections": {
-    "header": { "name": "Header" },
-    "footer": { "name": "Footer" },
-    "main": { "name": "Main content" }
-  }
-}

@@ -1,0 +1,22 @@
+<section class="basic-page">
+  <div class="wrap wrap--narrow">
+    <h1 class="section-title">Your account</h1>
+    <p class="rte">Signed in as {{ customer.email }}.</p>
+    <h2 class="eyebrow mono">Orders</h2>
+    {%- paginate customer.orders by 20 -%}
+      {%- if customer.orders.size > 0 -%}
+        <ul class="coll-list">
+          {%- for order in customer.orders -%}
+            <li><a href="{{ order.customer_url }}">{{ order.name }} <span class="muted">{{ order.created_at | date: '%b %d, %Y' }} · {{ order.total_price | money }}</span></a></li>
+          {%- endfor -%}
+        </ul>
+      {%- else -%}
+        <p class="rte">No orders yet.</p>
+      {%- endif -%}
+    {%- endpaginate -%}
+    <p><a class="card__link" href="{{ routes.account_logout_url }}">Sign out</a></p>
+  </div>
+</section>
+{% schema %}
+{ "name": "Account", "class": "section-account", "settings": [] }
+{% endschema %}

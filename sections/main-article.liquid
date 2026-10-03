@@ -1,13 +1,10 @@
-<div class="page-width">
-  <article>
-    <h1>{{ article.title }}</h1>
-    {{ article.content }}
-  </article>
-</div>
-
+<section class="basic-page">
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow mono">{{ article.published_at | date: '%b %d, %Y' }}</p>
+    <h1 class="section-title">{{ article.title }}</h1>
+    <div class="rte">{{ article.content }}</div>
+  </div>
+</section>
 {% schema %}
-{
-  "name": "t:sections.main.name",
-  "settings": []
-}
+{ "name": "Article", "class": "section-article", "settings": [] }
 {% endschema %}

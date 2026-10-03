@@ -1,27 +1,135 @@
-<div class="page-width">
-  <h1>{{ 'cart.title' | t }}</h1>
-  {% if cart.item_count > 0 %}
-    <form action="{{ routes.cart_url }}" method="post">
-      <ul>
-        {% for item in cart.items %}
-          <li>
-            <a href="{{ item.url }}">{{ item.title }}</a>
-            <input type="number" name="updates[]" value="{{ item.quantity }}" min="0">
-            {{ item.final_line_price | money }}
-          </li>
-        {% endfor %}
-      </ul>
-      <p>{{ 'cart.subtotal' | t }}: {{ cart.total_price | money }}</p>
-      <button type="submit" name="checkout">{{ 'cart.checkout' | t }}</button>
-    </form>
-  {% else %}
-    <p>{{ 'cart.empty' | t }}</p>
-  {% endif %}
-</div>
+<section class="cart-page">
+  <div class="wrap">
+    <p class="eyebrow mono">Your cart</p>
+    <h1 class="section-title">{% if cart.item_count > 0 %}Ready to check out.{% else %}Nothing here yet.{% endif %}</h1>
+
+    {%- if cart.item_count > 0 -%}
+      <form action="{{ routes.cart_url }}" method="post" class="cart" id="CartForm" novalidate data-cart-form>
+        <ul class="cart__lines">
+          {%- for item in cart.items -%}
+            <li class="line">
+              <a class="line__img" href="{{ item.url }}">
+                {%- if item.image -%}
+                  {{ item.image | image_url: width: 240 | image_tag: loading: 'lazy', alt: item.product.title }}
+                {%- else -%}
+                  <img src="{{ 'ra-mascot.png' | asset_url }}" alt="" width="120" height="120">
+                {%- endif -%}
+              </a>
+              <div class="line__info">
+                {%- assign g = item.product.type | default: item.product.vendor -%}
+                {%- if g != blank -%}<p class="line__genus mono">{{ g | upcase }}</p>{%- endif -%}
+                <a class="line__title" href="{{ item.url }}">{{ item.product.title }}</a>
+                {%- unless item.product.has_only_default_variant -%}<p class="line__variant">{{ item.variant.title }}</p>{%- endunless -%}
+                <a class="line__remove" href="{{ item.url_to_remove }}">Remove</a>
+              </div>
+              <label class="line__qty">
+                <span class="visually-hidden">Quantity for {{ item.product.title }}</span>
+                <input class="field__input field__input--qty" type="number" name="updates[]" value="{{ item.quantity }}" min="0" {% if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny' %}max="{{ item.variant.inventory_quantity }}"{% endif %} data-qty>
+              </label>
+              <span class="line__price">{{ item.final_line_price | money }}</span>
+            </li>
+          {%- endfor -%}
+        </ul>
+
+        <div class="cart__side">
+          <fieldset class="pickup-fields">
+            <legend class="eyebrow mono">Choose your pickup window</legend>
+            <label class="field">
+              <span class="field__label">Date</span>
+              <input class="field__input" type="date" name="attributes[Pickup date]" value="{{ cart.attributes['Pickup date'] }}" required data-pickup-date data-lead-days="{{ section.settings.lead_days }}" data-closed-days="{{ section.settings.closed_days | escape }}">
+            </label>
+            <label class="field">
+              <span class="field__label">Pickup window</span>
+              <select class="field__input" name="attributes[Pickup window]" required data-pickup-window>
+                <option value="">Select a window</option>
+                {%- liquid
+                  assign day_len = section.settings.window_hours
+                  assign day_count = section.settings.day_windows
+                  assign day_total = day_len | times: day_count
+                  if day_total > 24
+                    assign day_count = 24 | divided_by: day_len
+                    assign day_total = day_len | times: day_count
+                  endif
+                  assign night_len = 24 | minus: day_total
+                  assign win_count = day_count
+                  if night_len > 0
+                    assign win_count = day_count | plus: 1
+                  endif
+                -%}
+                {%- for i in (1..win_count) -%}
+                  {%- liquid
+                    assign h = i | minus: 1 | times: day_len | plus: section.settings.start_hour
+                    assign len = day_len
+                    if i > day_count
+                      assign len = night_len
+                    endif
+                    assign h = h | modulo: 24
+                    assign h2_raw = h | plus: len
+                    assign h2 = h2_raw | modulo: 24
+
+                    assign a = h | modulo: 12
+                    if a == 0
+                      assign a = 12
+                    endif
+                    assign b = h2 | modulo: 12
+                    if b == 0
+                      assign b = 12
+                    endif
+                    if h < 12
+                      assign ap = 'AM'
+                    else
+                      assign ap = 'PM'
+                    endif
+                    if h2 < 12
+                      assign bp = 'AM'
+                    else
+                      assign bp = 'PM'
+                    endif
+                    assign label = a | append: ':00 ' | append: ap | append: ' – ' | append: b | append: ':00 ' | append: bp
+                    if h2_raw > 24
+                      assign label = label | append: ' (overnight)'
+                    endif
+                  -%}
+                  <option value="{{ label }}" {% if cart.attributes['Pickup window'] == label %}selected{% endif %}>{{ label }}</option>
+                {%- endfor -%}
+              </select>
+            </label>
+            <p class="field__hint" data-pickup-error role="alert" hidden></p>
+            {%- if section.settings.pickup_hint != blank -%}<p class="field__hint">{{ section.settings.pickup_hint }}</p>{%- endif -%}
+          </fieldset>
+
+          <label class="field">
+            <span class="field__label">Note (optional)</span>
+            <textarea class="field__input" name="note" rows="3" placeholder="Anything we should know?">{{ cart.note }}</textarea>
+          </label>
+
+          <div class="cart__total">
+            <span>Subtotal</span>
+            <span class="cart__total-val">{{ cart.total_price | money }}</span>
+          </div>
+          <p class="field__hint">At checkout, choose <strong>Pick up</strong> as your delivery method. Taxes are calculated at checkout.</p>
+          <button type="submit" name="update" class="btn btn--outline btn--block" formnovalidate>Update cart</button>
+          <button type="submit" name="checkout" class="btn btn--solid btn--block btn--lg" data-checkout>Check out</button>
+        </div>
+      </form>
+    {%- else -%}
+      <p class="cart__empty">Add a plant to your cart, then come back here to choose your pickup date and window.</p>
+      <a class="cta" href="{{ routes.root_url }}#collection"><span>See the plants</span></a>
+    {%- endif -%}
+  </div>
+</section>
 
 {% schema %}
 {
-  "name": "t:sections.main.name",
-  "settings": []
+  "name": "Cart",
+  "class": "section-cart",
+  "settings": [
+    { "type": "range", "id": "start_hour", "label": "First pickup window starts at (24h)", "min": 0, "max": 23, "step": 1, "default": 8, "info": "Windows run around the clock from this hour. A window that runs past midnight is marked overnight." },
+    { "type": "range", "id": "window_hours", "label": "Daytime window length (hours)", "min": 1, "max": 12, "step": 1, "default": 6 },
+    { "type": "range", "id": "day_windows", "label": "Number of daytime windows", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The rest of the 24 hours becomes one overnight window." },
+    { "type": "range", "id": "lead_days", "label": "Earliest pickup (days from today)", "min": 0, "max": 7, "step": 1, "default": 1 },
+    { "type": "text", "id": "closed_days", "label": "Days with no pickup", "info": "Comma-separated, e.g. Sun,Mon. Leave empty for every day." },
+    { "type": "text", "id": "pickup_hint", "label": "Pickup note", "default": "Pickup is open 24/7. Your locker PIN is emailed before your window opens." }
+  ]
 }
 {% endschema %}

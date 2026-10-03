@@ -3,31 +3,56 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbfaf5">
     <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="icon" type="image/png" href="{{ 'ra-favicon.png' | asset_url }}">
+
     <title>
       {{ page_title }}
-      {%- if current_page != 1 %} &ndash; {{ 'general.page' | t: page: current_page }}{% endif -%}
+      {%- if current_tags %} &ndash; {{ current_tags | join: ', ' }}{% endif -%}
+      {%- if current_page != 1 %} &ndash; Page {{ current_page }}{% endif -%}
       {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
     </title>
     {% if page_description %}
       <meta name="description" content="{{ page_description | escape }}">
     {% endif %}
 
-    {{ 'base.css' | asset_url | stylesheet_tag }}
-    <script src="{{ 'theme.js' | asset_url }}" defer></script>
+    {% render 'meta-tags' %}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+
+    {{ 'root-access.css' | asset_url | stylesheet_tag }}
+    <script src="{{ 'root-access.js' | asset_url }}" defer></script>
 
     {{ content_for_header }}
   </head>
-  <body>
-    <a class="skip-to-content" href="#MainContent">{{ 'accessibility.skip_to_content' | t }}</a>
+
+  <body class="template-{{ template.name }}">
+    <a class="skip-link" href="#MainContent">Skip to content</a>
 
     {% sections 'header-group' %}
 
-    <main id="MainContent" role="main" tabindex="-1">
+    <main id="MainContent" tabindex="-1">
       {{ content_for_layout }}
     </main>
 
     {% sections 'footer-group' %}
+
+    <div class="toast" id="CartToast" role="status" aria-live="polite" hidden>
+      <span class="toast__msg" data-toast-msg>Added to cart</span>
+      <a class="toast__link" href="{{ routes.cart_url }}">View cart</a>
+    </div>
+
+    <script>
+      window.RootAccess = {
+        routes: {
+          cartAdd: {{ routes.cart_add_url | append: '.js' | json }},
+          cart: {{ routes.cart_url | append: '.js' | json }}
+        }
+      };
+    </script>
   </body>
 </html>

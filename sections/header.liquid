@@ -1,13 +1,27 @@
-<header class="site-header page-width">
-  <a href="{{ routes.root_url }}">{{ shop.name }}</a>
-  <nav>
-    <a href="{{ routes.cart_url }}">{{ 'cart.title' | t }} ({{ cart.item_count }})</a>
-  </nav>
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    {% render 'logo-tile', size: 'lg' %}
+    <nav class="site-nav" aria-label="Main">
+      <ul class="site-nav__links">
+        <li><a href="{{ routes.root_url }}#collection">{{ section.settings.plants_label }}</a></li>
+        <li><a href="{{ routes.root_url }}#pickup">{{ section.settings.pickup_label }}</a></li>
+        <li><a href="{{ routes.search_url }}">Search</a></li>
+      </ul>
+    </nav>
+    <a class="bag-btn" href="{{ routes.cart_url }}">
+      <span>Cart</span>
+      <span class="bag-btn__count" data-cart-count>{{ cart.item_count }}</span>
+    </a>
+  </div>
 </header>
 
 {% schema %}
 {
-  "name": "t:sections.header.name",
-  "settings": []
+  "name": "Header",
+  "class": "section-header",
+  "settings": [
+    { "type": "text", "id": "plants_label", "label": "Plants link label", "default": "The plants" },
+    { "type": "text", "id": "pickup_label", "label": "Pickup link label", "default": "How pickup works" }
+  ]
 }
 {% endschema %}

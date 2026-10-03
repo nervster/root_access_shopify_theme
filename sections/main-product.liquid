@@ -1,28 +1,21 @@
-<div class="page-width">
-  <h1>{{ product.title }}</h1>
-  {% if product.featured_image %}
-    {{ product.featured_image | image_url: width: 800 | image_tag }}
-  {% endif %}
-  <p>{{ product.selected_or_first_available_variant.price | money }}</p>
-  {{ product.description }}
+<section class="product-page">
+  <div class="wrap">
+    <a class="back-link" href="{{ routes.root_url }}#collection">Back to all plants</a>
+    {%- assign size_line = product.metafields.custom.pot_size.value | default: section.settings.size_note -%}
+    {% render 'product-detail', product: product, heading_tag: 'h1', size_note: size_line, context: 'page' %}
+  </div>
+</section>
 
-  {% form 'product', product %}
-    <select name="id">
-      {% for variant in product.variants %}
-        <option value="{{ variant.id }}" {% unless variant.available %}disabled{% endunless %}>
-          {{ variant.title }}
-        </option>
-      {% endfor %}
-    </select>
-    <button type="submit" {% unless product.available %}disabled{% endunless %}>
-      {% if product.available %}{{ 'products.add_to_cart' | t }}{% else %}{{ 'products.sold_out' | t }}{% endif %}
-    </button>
-  {% endform %}
-</div>
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
 
 {% schema %}
 {
-  "name": "t:sections.main.name",
-  "settings": []
+  "name": "Product",
+  "class": "section-product",
+  "settings": [
+    { "type": "text", "id": "size_note", "label": "Default size note", "default": "Established plant, 3–4\" pot" }
+  ]
 }
 {% endschema %}

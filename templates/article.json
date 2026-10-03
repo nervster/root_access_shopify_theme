@@ -1,6 +1,4 @@
 {
-  "sections": {
-    "main": { "type": "main-article", "settings": {} }
-  },
+  "sections": { "main": { "type": "main-article", "settings": {} } },
   "order": ["main"]
 }

@@ -1,10 +1,13 @@
-<div class="page-width">
-  <h1>{{ 'customer.addresses' | t }}</h1>
-  {% paginate customer.addresses by 10 %}
-    {% for address in customer.addresses %}
-      <div>{{ address | format_address }}</div>
-    {% endfor %}
-    {{ paginate | default_pagination }}
-  {% endpaginate %}
-  <a href="{{ routes.account_url }}">{{ 'customer.account' | t }}</a>
-</div>
+<section class="basic-page"><div class="wrap wrap--narrow">
+  <a class="back-link" href="{{ routes.account_url }}">Back to account</a>
+  <h1 class="section-title">Addresses</h1>
+  {%- paginate customer.addresses by 10 -%}
+    <ul class="coll-list">
+      {%- for address in customer.addresses -%}
+        <li><span>{{ address | format_address }}</span></li>
+      {%- else -%}
+        <li><span>No saved addresses. Pickup orders don't need one.</span></li>
+      {%- endfor -%}
+    </ul>
+  {%- endpaginate -%}
+</div></section>

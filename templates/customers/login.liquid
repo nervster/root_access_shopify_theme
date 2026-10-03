@@ -1,20 +1,15 @@
-<div class="page-width">
-  <h1>{{ 'customer.login' | t }}</h1>
-  {% form 'customer_login' %}
+<section class="basic-page"><div class="wrap wrap--narrow">
+  <h1 class="section-title">Sign in</h1>
+  {%- form 'customer_login', class: 'stack' -%}
     {{ form.errors | default_errors }}
-    <label for="CustomerEmail">{{ 'customer.email' | t }}</label>
-    <input type="email" name="customer[email]" id="CustomerEmail" autocomplete="email">
-    <label for="CustomerPassword">{{ 'customer.password' | t }}</label>
-    <input type="password" name="customer[password]" id="CustomerPassword" autocomplete="current-password">
-    <button type="submit">{{ 'customer.login' | t }}</button>
-  {% endform %}
-
-  {% form 'recover_customer_password' %}
-    {{ form.errors | default_errors }}
-    <label for="RecoverEmail">{{ 'customer.email' | t }}</label>
-    <input type="email" name="email" id="RecoverEmail" autocomplete="email">
-    <button type="submit">{{ 'customer.reset_password' | t }}</button>
-  {% endform %}
-
-  <a href="{{ routes.account_register_url }}">{{ 'customer.register' | t }}</a>
-</div>
+    <label class="field"><span class="field__label">Email</span><input class="field__input" type="email" name="customer[email]" autocomplete="email" required></label>
+    <label class="field"><span class="field__label">Password</span><input class="field__input" type="password" name="customer[password]" autocomplete="current-password" required></label>
+    <button class="btn btn--solid btn--block" type="submit">Sign in</button>
+  {%- endform -%}
+  <p><a class="card__link" href="{{ routes.account_register_url }}">Create an account</a></p>
+  {%- form 'recover_customer_password', class: 'stack' -%}
+    {%- if form.posted_successfully? -%}<p>Check your email for a reset link.</p>{%- endif -%}
+    <label class="field"><span class="field__label">Forgot your password? Enter your email</span><input class="field__input" type="email" name="email" autocomplete="email"></label>
+    <button class="btn btn--outline btn--block" type="submit">Send reset link</button>
+  {%- endform -%}
+</div></section>

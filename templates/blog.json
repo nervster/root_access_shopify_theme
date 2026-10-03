@@ -1,6 +1,4 @@
 {
-  "sections": {
-    "main": { "type": "main-blog", "settings": {} }
-  },
+  "sections": { "main": { "type": "main-blog", "settings": {} } },
   "order": ["main"]
 }
