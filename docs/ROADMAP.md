@@ -94,7 +94,7 @@ These are built in the other repo; listed here so both sides agree on the contra
 ### 4. After the order
 - [ ] Order status / thank-you page shows the booked slot (Shopify's thank-you page extensions work on all plans)
 - [ ] Confirmation email with pickup instructions and the locker PIN (Plant Stock Phase 4)
-- [ ] Customers change their pickup slot after ordering, through a link that goes to Plant Stock (workflow still being decided in Plant Stock)
+- [ ] Customers change their pickup slot or cancel after ordering, on the theme's **My pickup** page (`page.my-pickup` template): order number and email, then Plant Stock's `my-pickup` endpoints through the App Proxy. Page built; to test against Plant Stock staging once its endpoints are deployed
 - [ ] Reminder before the window, and an email asking the customer to choose a new window if they miss it (Plant Stock)
 
 ### 5. Later
