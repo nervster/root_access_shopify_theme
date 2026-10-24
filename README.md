@@ -21,8 +21,8 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 
 **Pickup scheduling**
 - The cart collects a pickup **date** and a **time window** and saves them as Shopify cart attributes. They then appear on the order in the Shopify admin and can be added to customer emails.
-- Pickup windows are generated in Liquid from theme settings: two daytime windows plus one overnight window by default. A window that crosses midnight is labeled as overnight automatically.
-- Client-side rules enforce a minimum lead time, optional closed days and a 30-day booking limit. If the date or window is missing or invalid, checkout is blocked with an inline message.
+- Open dates and windows come from Plant Stock, the inventory app, through a Shopify App Proxy (`/apps/plant-stock/pickup-slots`) on the store's own domain. Plant Stock applies the 8-hour lead time, closed days and windows, and the 30-day booking limit; full days show greyed out.
+- If the cart has been open more than 5 minutes, it asks Plant Stock again before checkout. If the chosen time is gone, if the date or window is missing, or if Plant Stock can't be reached, checkout is blocked with an inline message.
 - Checkout is pickup-only. The checkout wording is overridden through the theme's language file, so buyers never see shipping options.
 
 **Shopping experience**
@@ -48,7 +48,7 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 - **Branching:** work happens on `feature/*` branches cut from `staging` and is merged through pull requests. `staging` is previewed on an unpublished Shopify theme, and only reviewed changes are merged to `main`, which is the live theme.
 - **Two-way sync:** Shopify commits edits made in the admin theme editor back to the connected branch as `shopify[bot]`, so content changes and code share one history.
 - **CI:** GitHub Actions runs Shopify's theme linter on every pull request and on every push to `main` and `staging`. Errors fail the build.
-- **Merchant-editable:** almost all copy, pickup hours, window lengths and featured products are theme settings, so the store owner can change them in the Shopify editor without code.
+- **Merchant-editable:** almost all copy and the per-order plant limit are theme settings (pickup windows are set in Plant Stock), so the store owner can change them in the Shopify editor without code.
 
 ## Project structure
 
