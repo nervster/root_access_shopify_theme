@@ -1,0 +1,95 @@
+{%- comment -%}
+  My pickup: a customer looks up their order by number and email, then changes its pickup time or
+  cancels it. Everything is answered by Plant Stock through the App Proxy (root-access.js; contract in
+  Plant Stock's docs/pickup-storefront.md, "After the order").
+{%- endcomment -%}
+<section class="basic-page my-pickup" data-my-pickup>
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow mono">My pickup</p>
+    <h1 class="section-title">{{ page.title }}</h1>
+    {%- if page.content != blank -%}
+      <div class="rte stack">{{ page.content }}</div>
+    {%- elsif section.settings.intro != blank -%}
+      <p class="muted stack">{{ section.settings.intro }}</p>
+    {%- endif -%}
+
+    <p class="field__hint" data-mp-loading role="status" hidden>Loading your order…</p>
+
+    <form class="mp__panel" data-mp-lookup novalidate>
+      <label class="field">
+        <span class="field__label">Order number</span>
+        <input class="field__input" type="text" name="order" inputmode="numeric" autocomplete="off" placeholder="1042" required data-mp-number-input>
+      </label>
+      <label class="field">
+        <span class="field__label">Email you ordered with</span>
+        <input class="field__input" type="email" name="email" autocomplete="email" required data-mp-email-input>
+      </label>
+      <p class="field__hint" data-mp-lookup-error role="alert" hidden></p>
+      <button class="btn btn--solid btn--block" type="submit">Find my order</button>
+    </form>
+
+    <div class="mp__panel" data-mp-order hidden>
+      <h2 class="mp__title" tabindex="-1" data-mp-title>Order <span data-mp-number></span></h2>
+      <dl class="mp__facts">
+        <div><dt>Status</dt><dd data-mp-status></dd></div>
+        <div><dt>Pickup</dt><dd data-mp-pickup></dd></div>
+      </dl>
+      <div class="mp__ordered" data-mp-items hidden>
+        <p class="eyebrow mono">What you ordered</p>
+        <ul class="mp__items" data-mp-item-list></ul>
+        <dl class="mp__amounts" data-mp-amounts></dl>
+      </div>
+      <p class="field__hint" data-mp-limits hidden></p>
+
+      <div class="mp__actions">
+        <button type="button" class="btn btn--outline" data-mp-change-open hidden>Change pickup time</button>
+        <button type="button" class="btn btn--outline" data-mp-cancel-open hidden>Cancel order</button>
+      </div>
+
+      <form class="mp__step" data-mp-change novalidate hidden>
+        <fieldset class="pickup-fields">
+          <legend class="eyebrow mono">Choose a new pickup time</legend>
+          <p class="field__hint" data-mp-current></p>
+          <label class="field">
+            <span class="field__label">Date</span>
+            <select class="field__input" data-mp-date disabled>
+              <option value="">Loading pickup times…</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field__label">Pickup window</span>
+            <select class="field__input" data-mp-window disabled>
+              <option value="">Choose a date first</option>
+            </select>
+          </label>
+        </fieldset>
+        <div class="mp__actions">
+          <button type="submit" class="btn btn--solid" data-mp-save>Save new time</button>
+          <button type="button" class="btn btn--outline" data-mp-change-close>Keep current time</button>
+        </div>
+      </form>
+
+      <div class="mp__step" data-mp-confirm hidden>
+        <p class="mp__confirm-text" data-mp-confirm-text></p>
+        <div class="mp__actions">
+          <button type="button" class="btn btn--solid mp__danger" data-mp-cancel>Yes, cancel and refund</button>
+          <button type="button" class="btn btn--outline" data-mp-cancel-close>Keep my order</button>
+        </div>
+      </div>
+
+      <p class="field__hint mp__note" data-mp-note role="status" hidden></p>
+      <p class="field__hint" data-mp-error role="alert" hidden></p>
+      <button type="button" class="mp__reset" data-mp-reset>Look up another order</button>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "My pickup",
+  "class": "section-my-pickup",
+  "settings": [
+    { "type": "text", "id": "intro", "label": "Intro", "info": "Shown when the page itself has no content.", "default": "Enter your order number and the email you ordered with to see your pickup time, change it, or cancel your order." }
+  ]
+}
+{% endschema %}

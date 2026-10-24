@@ -193,6 +193,7 @@ h1, h2, h3 { overflow-wrap: break-word; }
 .card__title a { text-decoration: none; }
 .card__title a:hover { color: var(--brand); }
 .price-mono { color: var(--brand); font-size: 20px; font-weight: 700; line-height: 1.3; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.card__stock { font-size: 14px; margin-bottom: 8px; }
 .card__link { align-self: flex-start; color: var(--brand); font-size: 15px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--leaf); margin-bottom: 18px; }
 .card__link:hover { text-decoration-thickness: 2px; }
 .card__form { margin-top: auto; }
@@ -217,7 +218,8 @@ h1, h2, h3 { overflow-wrap: break-word; }
 /* Quantity stepper: replaces Add to cart once the plant is in the cart */
 .qty { display: flex; border: 1.5px solid var(--brand); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
 .qty__btn { flex: 0 0 52px; border: 0; background: transparent; color: var(--brand); font-size: 22px; font-weight: 600; line-height: 1; cursor: pointer; transition: background .18s var(--ease), color .18s var(--ease); }
-.qty__btn:hover { background: var(--brand); color: #fff; }
+.qty__btn:hover:not([aria-disabled="true"]) { background: var(--brand); color: #fff; }
+.qty__btn[aria-disabled="true"] { color: var(--line-strong); cursor: not-allowed; }
 .qty__btn:focus-visible, .qty__input:focus-visible { outline-offset: -3px; }
 .qty__input {
   flex: 1; min-width: 0; padding: 12px 0; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line);
@@ -306,6 +308,8 @@ h1, h2, h3 { overflow-wrap: break-word; }
 .detail__desc { margin-bottom: 20px; }
 .detail__pickup { margin-bottom: 26px; color: var(--muted); }
 .detail__stock { color: var(--clay); font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+.stock-note { color: var(--muted); font-weight: 600; }
+.stock-note.is-low { color: var(--clay); }
 .detail__form .detail__stock:last-child { margin: 12px 0 0; color: var(--muted); font-weight: 400; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .field__label { font-size: 14px; font-weight: 600; }
@@ -387,6 +391,33 @@ select.field__input { appearance: none; background-image: linear-gradient(45deg,
 .search-empty { color: var(--muted); max-width: 52ch; }
 .search-empty a { color: var(--brand); }
 .stack { margin-bottom: 28px; }
+
+/* My pickup */
+.mp__panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(18px, 4vw, 26px); }
+.mp__title { font-family: var(--display); font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+.mp__title:focus { outline: none; }
+.mp__facts { margin: 0 0 14px; }
+.mp__facts div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.mp__facts div:last-child { border-bottom: 1px solid var(--line); }
+.mp__facts dt { font-size: 14px; font-weight: 600; padding-top: 2px; }
+.mp__facts dd { margin: 0; }
+.mp__ordered { margin-bottom: 18px; }
+.mp__items { list-style: none; margin: 0 0 8px; padding: 0; }
+.mp__items li, .mp__amounts div { display: flex; justify-content: space-between; gap: 16px; }
+.mp__items li { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.mp__items li > span:last-child, .mp__amounts dd { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mp__amounts { margin: 0; }
+.mp__amounts div { padding: 3px 0; color: var(--muted); font-size: 15px; }
+.mp__amounts dd { margin: 0; }
+.mp__amounts .mp__total { color: var(--text); font-size: 17px; font-weight: 700; padding-top: 6px; }
+.mp__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.mp__actions .btn { flex: 1 1 200px; }
+.mp__step { border-top: 1px solid var(--line); padding-top: 18px; margin-bottom: 4px; }
+.mp__confirm-text { font-weight: 600; margin-bottom: 14px; }
+.mp__danger { background: var(--error); border-color: var(--error); }
+.mp__danger:hover:not([disabled]) { background: #8f1c13; border-color: #8f1c13; }
+.mp__note { color: var(--brand); font-weight: 600; }
+.mp__reset { background: none; border: 0; padding: 4px 0; color: var(--brand); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .pager { display: flex; gap: 24px; justify-content: center; align-items: center; margin-top: 40px; color: var(--muted); }
 .pager a { color: var(--brand); font-weight: 600; }
 

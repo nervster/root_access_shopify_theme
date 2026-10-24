@@ -40,64 +40,17 @@
             <legend class="eyebrow mono">Choose your pickup window</legend>
             <label class="field">
               <span class="field__label">Date</span>
-              <input class="field__input" type="date" name="attributes[Pickup date]" value="{{ cart.attributes['Pickup date'] }}" required data-pickup-date data-lead-days="{{ section.settings.lead_days }}" data-closed-days="{{ section.settings.closed_days | escape }}">
+              <select class="field__input" name="attributes[Pickup date]" required data-pickup-date data-saved="{{ cart.attributes['Pickup date'] | escape }}" disabled>
+                <option value="">Loading pickup times…</option>
+              </select>
             </label>
             <label class="field">
               <span class="field__label">Pickup window</span>
-              <select class="field__input" name="attributes[Pickup window]" required data-pickup-window>
-                <option value="">Select a window</option>
-                {%- liquid
-                  assign day_len = section.settings.window_hours
-                  assign day_count = section.settings.day_windows
-                  assign day_total = day_len | times: day_count
-                  if day_total > 24
-                    assign day_count = 24 | divided_by: day_len
-                    assign day_total = day_len | times: day_count
-                  endif
-                  assign night_len = 24 | minus: day_total
-                  assign win_count = day_count
-                  if night_len > 0
-                    assign win_count = day_count | plus: 1
-                  endif
-                -%}
-                {%- for i in (1..win_count) -%}
-                  {%- liquid
-                    assign h = i | minus: 1 | times: day_len | plus: section.settings.start_hour
-                    assign len = day_len
-                    if i > day_count
-                      assign len = night_len
-                    endif
-                    assign h = h | modulo: 24
-                    assign h2_raw = h | plus: len
-                    assign h2 = h2_raw | modulo: 24
-
-                    assign a = h | modulo: 12
-                    if a == 0
-                      assign a = 12
-                    endif
-                    assign b = h2 | modulo: 12
-                    if b == 0
-                      assign b = 12
-                    endif
-                    if h < 12
-                      assign ap = 'AM'
-                    else
-                      assign ap = 'PM'
-                    endif
-                    if h2 < 12
-                      assign bp = 'AM'
-                    else
-                      assign bp = 'PM'
-                    endif
-                    assign label = a | append: ':00 ' | append: ap | append: ' – ' | append: b | append: ':00 ' | append: bp
-                    if h2_raw > 24
-                      assign label = label | append: ' (overnight)'
-                    endif
-                  -%}
-                  <option value="{{ label }}" {% if cart.attributes['Pickup window'] == label %}selected{% endif %}>{{ label }}</option>
-                {%- endfor -%}
+              <select class="field__input" name="attributes[Pickup window]" required data-pickup-window data-saved="{{ cart.attributes['Pickup window'] | escape }}" disabled>
+                <option value="">Choose a date first</option>
               </select>
             </label>
+            <p class="field__hint" data-pickup-status role="status" hidden></p>
             <p class="field__hint" data-pickup-error role="alert" hidden></p>
             {%- if section.settings.pickup_hint != blank -%}<p class="field__hint">{{ section.settings.pickup_hint }}</p>{%- endif -%}
           </fieldset>
@@ -129,11 +82,6 @@
   "name": "Cart",
   "class": "section-cart",
   "settings": [
-    { "type": "range", "id": "start_hour", "label": "First pickup window starts at (24h)", "min": 0, "max": 23, "step": 1, "default": 8, "info": "Windows run around the clock from this hour. A window that runs past midnight is marked overnight." },
-    { "type": "range", "id": "window_hours", "label": "Daytime window length (hours)", "min": 1, "max": 12, "step": 1, "default": 6 },
-    { "type": "range", "id": "day_windows", "label": "Number of daytime windows", "min": 1, "max": 6, "step": 1, "default": 2, "info": "The rest of the 24 hours becomes one overnight window." },
-    { "type": "range", "id": "lead_days", "label": "Earliest pickup (days from today)", "min": 0, "max": 7, "step": 1, "default": 1 },
-    { "type": "text", "id": "closed_days", "label": "Days with no pickup", "info": "Comma-separated, e.g. Sun,Mon. Leave empty for every day." },
     { "type": "text", "id": "pickup_hint", "label": "Pickup note", "default": "Pickup is open 24/7. Your locker PIN is emailed before your window opens." }
   ]
 }

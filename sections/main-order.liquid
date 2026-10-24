@@ -3,7 +3,13 @@
     <a class="back-link" href="{{ routes.account_url }}">Back to account</a>
     <h1 class="section-title">Order {{ order.name }}</h1>
     <p class="rte">Placed {{ order.created_at | date: '%b %d, %Y' }}</p>
-    {%- for attr in order.attributes -%}<p>{{ attr.first }}: {{ attr.last }}</p>{%- endfor -%}
+    {%- for attr in order.attributes -%}
+      {%- unless attr.first == 'Pickup hold' -%}<p>{{ attr.first }}: {{ attr.last }}</p>{%- endunless -%}
+    {%- endfor -%}
+    {%- assign my_pickup_page = pages['my-pickup'] -%}
+    {%- if my_pickup_page.url != blank and order.cancelled == false and order.attributes['Pickup date'] != blank -%}
+      <p class="rte"><a href="{{ my_pickup_page.url }}?order={{ order.order_number }}">Change pickup time or cancel</a></p>
+    {%- endif -%}
     <ul class="coll-list">
       {%- for li in order.line_items -%}
         <li><span>{{ li.title }} × {{ li.quantity }}</span> <span class="muted">{{ li.final_line_price | money }}</span></li>

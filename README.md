@@ -21,9 +21,11 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 
 **Pickup scheduling**
 - The cart collects a pickup **date** and a **time window** and saves them as Shopify cart attributes. They then appear on the order in the Shopify admin and can be added to customer emails.
-- Pickup windows are generated in Liquid from theme settings: two daytime windows plus one overnight window by default. A window that crosses midnight is labeled as overnight automatically.
-- Client-side rules enforce a minimum lead time, optional closed days and a 30-day booking limit. If the date or window is missing or invalid, checkout is blocked with an inline message.
+- Open dates and windows come from Plant Stock, the inventory app, through a Shopify App Proxy (`/apps/plant-stock/pickup-slots`) on the store's own domain. Plant Stock applies the 8-hour lead time, closed days and windows, and the 30-day booking limit; full days show greyed out.
+- Picking a window holds it for the cart for 30 minutes, so no one else can book the one locker for that time. The hold is saved on the cart as `Pickup hold`, refreshed when the shopper clicks Check out, and released when the cart is emptied. Plant Stock turns it into a booking when the order comes in.
+- If the time was just taken, is now too soon, or the date or window is missing, the shopper stays on the cart with an inline message and fresh choices. If Plant Stock can't be reached, checkout is disabled.
 - Checkout is pickup-only. The checkout wording is overridden through the theme's language file, so buyers never see shipping options.
+- After ordering, customers use the **My pickup** page (`/pages/my-pickup`) to change their pickup time or cancel. They enter their order number and email; Plant Stock checks the pair with Shopify and answers with the order and what it allows (changing the time until pickup, cancelling with a full refund until 2 hours after the order is ready). No customer details are stored in the theme or the browser beyond a one-hour lookup key in `sessionStorage`.
 
 **Shopping experience**
 - Add to cart without a page reload, using Shopify's AJAX Cart API, with a status popup and a live cart count.
@@ -48,7 +50,7 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 - **Branching:** work happens on `feature/*` branches cut from `staging` and is merged through pull requests. `staging` is previewed on an unpublished Shopify theme, and only reviewed changes are merged to `main`, which is the live theme.
 - **Two-way sync:** Shopify commits edits made in the admin theme editor back to the connected branch as `shopify[bot]`, so content changes and code share one history.
 - **CI:** GitHub Actions runs Shopify's theme linter on every pull request and on every push to `main` and `staging`. Errors fail the build.
-- **Merchant-editable:** almost all copy, pickup hours, window lengths and featured products are theme settings, so the store owner can change them in the Shopify editor without code.
+- **Merchant-editable:** almost all copy, the per-order plant limit and the low-stock ("Only N left") threshold are theme settings (pickup windows are set in Plant Stock), so the store owner can change them in the Shopify editor without code.
 
 ## Project structure
 
@@ -57,7 +59,7 @@ assets/      root-access.css (design system + layout), root-access.js (cart, dia
 config/      Theme settings schema; settings_data.json is maintained by Shopify
 layout/      Page shells (main storefront, password page)
 locales/     Storefront and checkout text overrides
-sections/    Page sections: hero, plant collection, pickup steps, cart, product, contact, header/footer groups
+sections/    Page sections: hero, plant collection, pickup steps, cart, My pickup, product, contact, header/footer groups
 snippets/    Reusable components: product card, product detail, logo, restock form, meta tags
 templates/   JSON templates that compose sections for each page type
 docs/        Store setup notes (e.g. pickup details in order emails)
