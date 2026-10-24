@@ -66,7 +66,7 @@ Order ──webhook / minute check──▶ Plant Stock: hold → booking (or fl
 ### 1. Ready to sell (theme only, no Plant Stock changes)
 - [ ] Check every page against real products synced from the Plant Stock staging site to the `root-access-staging` store: titles, descriptions, prices, pot-size variants, photos in the right order, sold-out state
 - [ ] Decide which product details Plant Stock should also send (for example light, water, pot size, care notes) and show them on the product page; agree the field names with Plant Stock
-- [ ] Show low stock ("only 2 left") from Shopify's inventory counts
+- [x] Show how many of each plant are left ("5 left", "Only 2 left" at or below the theme setting, default 3) on plant cards and product pages, with how many are in the cart and a note once the cart has them all
 - [x] Cart limits: up to 8 plants per order, all picked up from the locker (see Decisions)
 - [ ] Store settings before launch: payments, taxes, local pickup location, policies (refund, privacy, terms), password page off, domain
 - [ ] Order emails: add pickup details to the confirmation email (`docs/notifications.md`)

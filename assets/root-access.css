@@ -193,6 +193,7 @@ h1, h2, h3 { overflow-wrap: break-word; }
 .card__title a { text-decoration: none; }
 .card__title a:hover { color: var(--brand); }
 .price-mono { color: var(--brand); font-size: 20px; font-weight: 700; line-height: 1.3; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.card__stock { font-size: 14px; margin-bottom: 8px; }
 .card__link { align-self: flex-start; color: var(--brand); font-size: 15px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--leaf); margin-bottom: 18px; }
 .card__link:hover { text-decoration-thickness: 2px; }
 .card__form { margin-top: auto; }
@@ -217,7 +218,8 @@ h1, h2, h3 { overflow-wrap: break-word; }
 /* Quantity stepper: replaces Add to cart once the plant is in the cart */
 .qty { display: flex; border: 1.5px solid var(--brand); border-radius: var(--radius-sm); overflow: hidden; background: var(--surface); }
 .qty__btn { flex: 0 0 52px; border: 0; background: transparent; color: var(--brand); font-size: 22px; font-weight: 600; line-height: 1; cursor: pointer; transition: background .18s var(--ease), color .18s var(--ease); }
-.qty__btn:hover { background: var(--brand); color: #fff; }
+.qty__btn:hover:not([aria-disabled="true"]) { background: var(--brand); color: #fff; }
+.qty__btn[aria-disabled="true"] { color: var(--line-strong); cursor: not-allowed; }
 .qty__btn:focus-visible, .qty__input:focus-visible { outline-offset: -3px; }
 .qty__input {
   flex: 1; min-width: 0; padding: 12px 0; border: 0; border-left: 1px solid var(--line); border-right: 1px solid var(--line);
@@ -306,6 +308,8 @@ h1, h2, h3 { overflow-wrap: break-word; }
 .detail__desc { margin-bottom: 20px; }
 .detail__pickup { margin-bottom: 26px; color: var(--muted); }
 .detail__stock { color: var(--clay); font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+.stock-note { color: var(--muted); font-weight: 600; }
+.stock-note.is-low { color: var(--clay); }
 .detail__form .detail__stock:last-child { margin: 12px 0 0; color: var(--muted); font-weight: 400; }
 .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
 .field__label { font-size: 14px; font-weight: 600; }
