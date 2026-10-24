@@ -4,6 +4,7 @@
   var RA = window.RootAccess || {};
   var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js', cartUpdate: '/cart/update.js', pickupSlots: '/apps/plant-stock/pickup-slots', pickupHolds: '/apps/plant-stock/pickup-holds', myPickup: '/apps/plant-stock/my-pickup' };
   var limit = RA.maxPlants || 8;
+  var lowStockAt = RA.lowStockAt || 3;
   var limitMsg = 'You can order up to ' + limit + ' plants at a time.';
   var state = RA.cart || { count: 0, items: {} };
   var PICKUP_CLEARED = { 'Pickup date': '', 'Pickup window': '', 'Pickup hold': '' };
@@ -114,6 +115,13 @@
     var detail = sel.closest('[data-detail]');
     var price = detail && detail.querySelector('[data-price-display]');
     if (price && opt) price.textContent = opt.getAttribute('data-price');
+    var note = detail && detail.querySelector('[data-stock-note]');
+    if (note && opt) {
+      var left = parseInt(opt.getAttribute('data-stock'), 10);
+      var low = left > 0 && left <= lowStockAt;
+      note.textContent = low ? 'Only ' + left + ' left' : '';
+      note.hidden = !low;
+    }
     var form = sel.closest('[data-add-form]');
     if (form) syncForm(form);
   });

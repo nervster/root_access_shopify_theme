@@ -8,6 +8,20 @@
   assign card_form_id = 'CardForm-' | append: product.id
   assign tag_text = product.tags | join: ' '
   assign search_text = product.title | append: ' ' | append: genus | append: ' ' | append: product.vendor | append: ' ' | append: tag_text | downcase
+
+  # Plants left across the pot sizes on sale; only counted when Shopify tracks every one of them
+  assign stock_left = 0
+  assign stock_counted = product.available
+  for variant in product.variants
+    if variant.available
+      if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny'
+        assign stock_left = stock_left | plus: variant.inventory_quantity
+      else
+        assign stock_counted = false
+      endif
+    endif
+  endfor
+  assign low_stock_at = settings.low_stock_at | default: 3
 -%}
 <article class="card{% unless product.available %} is-soldout{% endunless %}" data-price="{{ price_bucket }}" data-search="{{ search_text | escape }}">
   <a class="card__media" href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">
@@ -27,6 +41,9 @@
       <h3 class="card__title"><a href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">{{ product.title }}</a></h3>
       {% render 'price-mono', product: product %}
     </div>
+    {%- if stock_counted and stock_left > 0 and stock_left <= low_stock_at -%}
+      <p class="card__stock">Only {{ stock_left }} left</p>
+    {%- endif -%}
     <a class="card__link" href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">
       {%- if product.images.size > 1 -%}See what it can grow into{%- else -%}View details{%- endif -%}
     </a>

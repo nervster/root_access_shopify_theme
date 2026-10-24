@@ -58,6 +58,7 @@
           myPickup: '/apps/plant-stock/my-pickup'
         },
         maxPlants: {{ settings.max_cart_plants | default: 8 }},
+        lowStockAt: {{ settings.low_stock_at | default: 3 }},
         cart: {
           count: {{ cart.item_count }},
           hold: {{ cart.attributes['Pickup hold'] | default: '' | json }},
