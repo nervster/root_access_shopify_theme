@@ -1,7 +1,11 @@
 (function () {
   'use strict';
 
-  var routes = (window.RootAccess && window.RootAccess.routes) || { cartAdd: '/cart/add.js', cart: '/cart.js' };
+  var RA = window.RootAccess || {};
+  var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js' };
+  var limit = RA.maxPlants || 8;
+  var limitMsg = 'You can order up to ' + limit + ' plants at a time.';
+  var state = RA.cart || { count: 0, items: {} };
 
   /* Quick-view dialogs */
   document.addEventListener('click', function (e) {
@@ -54,6 +58,8 @@
     var detail = sel.closest('[data-detail]');
     var price = detail && detail.querySelector('[data-price-display]');
     if (price && opt) price.textContent = opt.getAttribute('data-price');
+    var form = sel.closest('[data-add-form]');
+    if (form) syncForm(form);
   });
 
   /* Add to cart without leaving the page */
@@ -74,6 +80,7 @@
     var form = e.target.closest('[data-add-form]');
     if (!form || !window.fetch) return;
     e.preventDefault();
+    if (state.count + 1 > limit) { showToast(limitMsg); return; }
     var btn = form.querySelector('[type="submit"]');
     if (btn) btn.classList.add('is-loading');
     fetch(routes.cartAdd, {
@@ -85,36 +92,140 @@
       .then(function (r) {
         if (!r.ok) throw new Error(r.data.description || r.data.message || 'Could not add to cart.');
         showToast((r.data.product_title || 'Plant') + ' added to cart');
-        return fetch(routes.cart, { headers: { 'Accept': 'application/json' } }).then(function (res) { return res.json(); });
-      })
-      .then(function (cart) {
-        if (cart) setCount(cart.item_count);
-        var dlg = form.closest('dialog');
-        if (dlg) dlg.close();
+        return refreshCart();
       })
       .catch(function (err) { showToast(err.message); })
       .finally(function () { if (btn) btn.classList.remove('is-loading'); });
   });
 
-  /* Price filter chips */
+  /* Cart quantities: a stepper takes the Add to cart button's place once a plant is in the cart */
+  function applyCart(cart) {
+    state.count = cart.item_count;
+    state.items = {};
+    cart.items.forEach(function (it) { state.items[it.variant_id] = (state.items[it.variant_id] || 0) + it.quantity; });
+    setCount(cart.item_count);
+    document.querySelectorAll('[data-add-form]').forEach(syncForm);
+  }
+  function refreshCart() {
+    return fetch(routes.cart, { headers: { 'Accept': 'application/json' } })
+      .then(function (res) { return res.json(); })
+      .then(applyCart);
+  }
+  function variantField(form) { return form.querySelector('[name="id"]'); }
+  function stockOf(form) {
+    var field = variantField(form);
+    var el = field.tagName === 'SELECT' ? field.options[field.selectedIndex] : field;
+    var s = el && el.getAttribute('data-stock');
+    return s ? parseInt(s, 10) : Infinity;
+  }
+  function syncForm(form) {
+    var stepper = form.querySelector('[data-stepper]');
+    var btn = form.querySelector('[data-add-button]');
+    if (!stepper || !btn) return;
+    var qty = state.items[variantField(form).value] || 0;
+    var input = stepper.querySelector('[data-stepper-input]');
+    var hadFocus = form.contains(document.activeElement) && document.activeElement !== variantField(form);
+    stepper.hidden = qty === 0;
+    btn.hidden = qty > 0;
+    if (document.activeElement !== input || qty === 0) input.value = qty;
+    input.max = Math.min(stockOf(form), qty + limit - state.count);
+    if (hadFocus && document.activeElement && document.activeElement.closest('[hidden]')) (qty ? input : btn).focus();
+  }
+
+  var pending = {};
+  function setQty(form, wanted) {
+    var id = variantField(form).value;
+    var have = state.items[id] || 0;
+    var stock = stockOf(form);
+    var room = have + limit - state.count;
+    var qty = Math.max(0, Math.min(wanted, stock, room));
+    if (wanted > qty) showToast(stock < room ? 'Only ' + stock + ' available.' : limitMsg);
+    form.querySelector('[data-stepper-input]').value = qty;
+    clearTimeout(pending[id]);
+    pending[id] = setTimeout(function () {
+      if (qty === (state.items[id] || 0)) return;
+      fetch(routes.cartChange, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ id: String(id), quantity: qty })
+      })
+        .then(function (res) {
+          return res.json().then(function (data) {
+            if (!res.ok) throw new Error(data.description || data.message || 'Could not update your cart.');
+            return data;
+          });
+        })
+        .then(applyCart)
+        .catch(function (err) { showToast(err.message); refreshCart(); });
+    }, 350);
+  }
+
   document.addEventListener('click', function (e) {
-    var chip = e.target.closest('[data-filter]');
-    if (!chip) return;
-    var section = chip.closest('.collection');
-    var val = chip.getAttribute('data-filter');
-    section.querySelectorAll('[data-filter]').forEach(function (c) {
-      var on = c === chip;
-      c.classList.toggle('is-active', on);
-      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    var step = e.target.closest('[data-stepper-step]');
+    if (!step) return;
+    var form = step.closest('[data-add-form]');
+    var input = form.querySelector('[data-stepper-input]');
+    setQty(form, (parseInt(input.value, 10) || 0) + parseInt(step.getAttribute('data-stepper-step'), 10));
+  });
+  document.addEventListener('change', function (e) {
+    var input = e.target.closest('[data-stepper-input]');
+    if (input) setQty(input.closest('[data-add-form]'), parseInt(input.value, 10) || 0);
+  });
+  document.addEventListener('keydown', function (e) {
+    // Enter commits the typed number instead of submitting the form (which would add another)
+    if (e.key === 'Enter' && e.target.closest('[data-stepper-input]')) { e.preventDefault(); e.target.blur(); }
+  });
+  // Pages restored from the back/forward cache show an old cart
+  window.addEventListener('pageshow', function (e) { if (e.persisted && window.fetch) refreshCart(); });
+  document.querySelectorAll('[data-add-form]').forEach(syncForm);
+
+  /* Cart page: no more than the plant limit per order */
+  var cartPageForm = document.querySelector('[data-cart-form]');
+  if (cartPageForm) {
+    cartPageForm.addEventListener('submit', function (e) {
+      var total = 0;
+      cartPageForm.querySelectorAll('[data-qty]').forEach(function (q) { total += parseInt(q.value, 10) || 0; });
+      var err = cartPageForm.querySelector('[data-qty-error]');
+      if (total > limit) {
+        e.preventDefault();
+        if (err) { err.textContent = limitMsg + ' You have ' + total + '; lower a quantity, then update your cart.'; err.hidden = false; }
+      } else if (err) {
+        err.hidden = true;
+      }
     });
+  }
+
+  /* Collection filters: price chips and the plant search box, applied together */
+  function filterGrid(section) {
+    var chip = section.querySelector('[data-filter].is-active');
+    var price = chip ? chip.getAttribute('data-filter') : 'all';
+    var box = section.querySelector('[data-plant-search]');
+    var words = box ? box.value.toLowerCase().split(/\s+/).filter(Boolean) : [];
     var shown = 0;
     section.querySelectorAll('[data-grid] .card').forEach(function (card) {
-      var match = val === 'all' || card.getAttribute('data-price') === val;
+      var text = card.getAttribute('data-search') || '';
+      var match = (price === 'all' || card.getAttribute('data-price') === price) &&
+        words.every(function (w) { return text.indexOf(w) !== -1; });
       card.hidden = !match;
       if (match) shown++;
     });
     var none = section.querySelector('[data-grid-none]');
     if (none) none.hidden = shown > 0;
+  }
+  document.addEventListener('click', function (e) {
+    var chip = e.target.closest('[data-filter]');
+    if (!chip) return;
+    var section = chip.closest('.collection');
+    section.querySelectorAll('[data-filter]').forEach(function (c) {
+      var on = c === chip;
+      c.classList.toggle('is-active', on);
+      c.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    filterGrid(section);
+  });
+  document.addEventListener('input', function (e) {
+    var box = e.target.closest('[data-plant-search]');
+    if (box) filterGrid(box.closest('.collection'));
   });
 
   /* Pickup date rules */
