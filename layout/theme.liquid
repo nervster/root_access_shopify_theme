@@ -22,7 +22,7 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&family=Courier+Prime:wght@700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
 
     {{ 'root-access.css' | asset_url | stylesheet_tag }}
     <script src="{{ 'root-access.js' | asset_url }}" defer></script>
@@ -50,7 +50,13 @@
       window.RootAccess = {
         routes: {
           cartAdd: {{ routes.cart_add_url | append: '.js' | json }},
-          cart: {{ routes.cart_url | append: '.js' | json }}
+          cart: {{ routes.cart_url | append: '.js' | json }},
+          cartChange: {{ routes.cart_change_url | append: '.js' | json }}
+        },
+        maxPlants: {{ settings.max_cart_plants | default: 8 }},
+        cart: {
+          count: {{ cart.item_count }},
+          items: { {%- for item in cart.items -%}"{{ item.variant_id }}": {{ item.quantity }}{% unless forloop.last %}, {% endunless %}{%- endfor -%} }
         }
       };
     </script>

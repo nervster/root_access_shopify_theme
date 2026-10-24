@@ -12,7 +12,10 @@
       {%- for policy in shop.policies -%}
         <a href="{{ policy.url }}">{{ policy.title }}</a>
       {%- endfor -%}
-      {%- if section.settings.contact_email != blank -%}
+      {%- assign contact_page = pages['contact'] -%}
+      {%- if contact_page.url != blank -%}
+        <a href="{{ contact_page.url }}">Contact</a>
+      {%- elsif section.settings.contact_email != blank -%}
         <a href="mailto:{{ section.settings.contact_email }}">Contact</a>
       {%- endif -%}
     </nav>
@@ -29,7 +32,7 @@
     { "type": "text", "id": "heading_2", "label": "Guarantee heading line 2", "default": "Grown for people." },
     { "type": "richtext", "id": "copy", "label": "Guarantee copy", "default": "<p>If your plant is damaged or isn’t to your satisfaction at pickup, we’ll offer a replacement. If one isn’t available, we’ll offer a full refund.</p>" },
     { "type": "text", "id": "note", "label": "Footer note", "default": "Grown with care in Houston, Texas." },
-    { "type": "text", "id": "contact_email", "label": "Contact email (optional)" }
+    { "type": "text", "id": "contact_email", "label": "Contact email (optional)", "info": "Used for the footer Contact link only if you don't have a page with the handle \"contact\"." }
   ]
 }
 {% endschema %}

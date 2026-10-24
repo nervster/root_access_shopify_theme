@@ -16,8 +16,13 @@
   {
     "name": "Product details",
     "settings": [
-      { "type": "text", "id": "detail_tagline", "label": "Product tagline", "default": "Start small. Grow something remarkable." },
       { "type": "text", "id": "pickup_note", "label": "Pickup line", "default": "Houston pickup · Pick up any time, day or night" }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      { "type": "range", "id": "max_cart_plants", "label": "Most plants per order", "min": 1, "max": 20, "step": 1, "default": 8 }
     ]
   }
 ]

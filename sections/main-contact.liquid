@@ -1,0 +1,30 @@
+<section class="basic-page">
+  <div class="wrap wrap--narrow">
+    <h1 class="section-title">{{ page.title }}</h1>
+    {%- if page.content != blank -%}<div class="rte">{{ page.content }}</div>{%- endif -%}
+
+    {%- form 'contact', id: 'ContactForm', class: 'stack' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="notify__ok" role="status">{{ section.settings.success_message }}</p>
+      {%- else -%}
+        {%- if form.errors -%}<div class="errors" role="alert">{{ form.errors | default_errors }}</div>{%- endif -%}
+        <label class="field"><span class="field__label">Name</span><input class="field__input" type="text" name="contact[name]" autocomplete="name" value="{{ form.name }}"></label>
+        <label class="field"><span class="field__label">Email</span><input class="field__input" type="email" name="contact[email]" autocomplete="email" value="{{ form.email }}" required></label>
+        <label class="field"><span class="field__label">Phone (optional)</span><input class="field__input" type="tel" name="contact[phone]" autocomplete="tel" value="{{ form.phone }}"></label>
+        <label class="field"><span class="field__label">Order number (optional)</span><input class="field__input" type="text" name="contact[Order number]" placeholder="#1001"></label>
+        <label class="field"><span class="field__label">Message</span><textarea class="field__input" name="contact[body]" rows="5" required>{{ form.body }}</textarea></label>
+        <button class="btn btn--solid btn--block" type="submit">Send message</button>
+      {%- endif -%}
+    {%- endform -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Contact form",
+  "class": "section-contact",
+  "settings": [
+    { "type": "text", "id": "success_message", "label": "Message after sending", "default": "Thanks for reaching out. We'll reply by email soon." }
+  ]
+}
+{% endschema %}
