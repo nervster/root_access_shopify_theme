@@ -74,11 +74,11 @@ Order ──webhook / minute check──▶ Plant Stock: hold → booking (or fl
 ### 2. Pickup slots in Plant Stock (`root_access_inventory_management`)
 These are built in the other repo; listed here so both sides agree on the contract.
 - [ ] Slot rules in Plant Stock: windows per day, the 8-hour lead time, closed days, 30-day limit, lockers
-- [ ] Bookings and holds tables, with a database rule that a locker slot can have only one live hold or booking (so two requests at the same moment can't both win)
+- [x] Bookings and holds tables, with a database rule that a locker slot can have only one live hold or booking (so two requests at the same moment can't both win)
 - [x] App Proxy set up in the app config, with signature checks
 - [x] `GET pickup-slots`: every free slot for the next 30 days in one response, grouped by date, in Houston time
-- [ ] `POST pickup-holds`: hold a slot, or say it was just taken; refresh and release a hold; a refresh at Checkout fails if the window now starts less than 8 hours away, so the shopper picks again
-- [ ] Turn holds into bookings when orders are imported; flag clashes and orders with no valid slot
+- [x] `POST pickup-holds`: hold a slot, or say it was just taken; refresh and release a hold; a refresh at Checkout fails if the window now starts less than 8 hours away, so the shopper picks again
+- [x] Turn holds into bookings when orders are imported; flag clashes and orders with no valid slot
 - [ ] Expire holds after 30 minutes; free the slot when an order is cancelled or its window ends without pickup
 - [ ] Staff screen: bookings by day, and moving an order to another slot
 
@@ -89,7 +89,7 @@ These are built in the other repo; listed here so both sides agree on the contra
 - [x] Refresh the hold when Checkout is clicked; release it when the slot changes or the cart is emptied
 - [x] Loading, error, and "Plant Stock unavailable" states; keyboard and screen-reader friendly
 - [x] Remove the theme settings that Plant Stock now owns (window hours, lead days, closed days), or keep them only as display text
-- [ ] Test on the staging theme against Plant Stock staging, including two browsers racing for the same slot
+- [x] Test on the staging theme against Plant Stock staging, including two browsers racing for the same slot
 
 ### 4. After the order
 - [ ] Order status / thank-you page shows the booked slot (Shopify's thank-you page extensions work on all plans)
