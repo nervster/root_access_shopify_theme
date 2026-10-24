@@ -1,13 +1,12 @@
 {%- comment -%}
   Shared detail layout for the product page and the quick-view dialog.
-  Accepts: product, heading_tag, size_note, context, tagline, pickup_note
+  Accepts: product, heading_tag, context, pickup_note
 {%- endcomment -%}
 {%- liquid
   assign genus = product.type | default: product.vendor
   assign current = product.selected_or_first_available_variant
   assign uid = context | append: '-' | append: product.id
   assign tag = heading_tag | default: 'h1'
-  assign tagline_text = tagline | default: settings.detail_tagline
   assign pickup_text = pickup_note | default: settings.pickup_note
 -%}
 <div class="detail" data-detail>
@@ -61,25 +60,30 @@
       <div class="detail__desc rte">{{ product.description }}</div>
     {%- endif -%}
 
-    {%- if tagline_text != blank or size_note != blank -%}
-      <p class="detail__grow">
-        {%- if tagline_text != blank -%}<strong>{{ tagline_text }}</strong>{%- endif -%}
-        {%- if size_note != blank -%}<br>{{ size_note }}{%- endif -%}
-      </p>
-    {%- endif -%}
-
     {%- if pickup_text != blank -%}<p class="detail__pickup">{{ pickup_text }}</p>{%- endif -%}
 
     {%- assign form_id = 'DetailForm-' | append: uid -%}
     {%- form 'product', product, id: form_id, class: 'detail__form', data-add-form: '' -%}
       {%- if product.has_only_default_variant -%}
-        <input type="hidden" name="id" value="{{ current.id }}">
+        {%- liquid
+          assign v_stock = ''
+          if current.inventory_management == 'shopify' and current.inventory_policy == 'deny'
+            assign v_stock = current.inventory_quantity
+          endif
+        -%}
+        <input type="hidden" name="id" value="{{ current.id }}" data-stock="{{ v_stock }}">
       {%- else -%}
         <label class="field">
           <span class="field__label">Option</span>
           <select name="id" class="field__input" data-variant-select>
             {%- for variant in product.variants -%}
-              <option value="{{ variant.id }}" data-price="{{ variant.price | money_without_trailing_zeros }}" {% if variant == current %}selected{% endif %} {% unless variant.available %}disabled{% endunless %}>
+              {%- liquid
+                assign v_stock = ''
+                if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny'
+                  assign v_stock = variant.inventory_quantity
+                endif
+              -%}
+              <option value="{{ variant.id }}" data-price="{{ variant.price | money_without_trailing_zeros }}" data-stock="{{ v_stock }}" {% if variant == current %}selected{% endif %} {% unless variant.available %}disabled{% endunless %}>
                 {{ variant.title }}{% unless variant.available %} (sold out){% endunless %}
               </option>
             {%- endfor -%}
@@ -91,7 +95,8 @@
         {%- if current.inventory_management == 'shopify' and current.inventory_quantity > 0 and current.inventory_quantity <= 3 -%}
           <p class="detail__stock">Only {{ current.inventory_quantity }} left</p>
         {%- endif -%}
-        <button type="submit" class="btn btn--solid btn--block btn--lg">Add to cart</button>
+        <button type="submit" class="btn btn--solid btn--block btn--lg" data-add-button>Add to cart</button>
+        {% render 'qty-stepper' %}
       {%- else -%}
         <button type="button" class="btn btn--solid btn--block btn--lg" disabled>Sold out</button>
         <p class="detail__stock">This one's gone for now. New specimens are added as they root.</p>

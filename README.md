@@ -29,9 +29,9 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 - Add to cart without a page reload, using Shopify's AJAX Cart API, with a status popup and a live cart count.
 - Product quick view built on the native `<dialog>` element, sharing one detail layout with the full product page.
 - A photo gallery that pairs "your plant today" with "what it can grow into".
-- Price filter chips on the collection grid.
+- Plant search and price filter chips on the homepage collection, applied together as you type.
+- Once a plant is in the cart, its Add to cart button turns into a quantity stepper, with a per-order plant limit (8 by default, a theme setting).
 - Products with several options open a chooser instead of silently adding the first option.
-- A featured product in the hero that falls back to the first in-stock plant if the chosen one sells out.
 - An out-of-stock state with a restock email signup. Signups are tagged in Shopify for follow-up.
 
 **Content and SEO**
