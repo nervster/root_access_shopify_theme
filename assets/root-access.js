@@ -566,8 +566,49 @@
       mp('change-open').hidden = !o.canChangeTime || !changeForm.hidden;
       mp('cancel-open').hidden = !o.canCancel || !confirmBox.hidden;
     }
+    function money(cents, currency) {
+      return new Intl.NumberFormat(undefined, { style: 'currency', currency: currency || 'USD' }).format(cents / 100);
+    }
+    function addAmount(list, label, cents, currency, cls) {
+      var row = document.createElement('div');
+      var dt = document.createElement('dt');
+      var dd = document.createElement('dd');
+      if (cls) row.className = cls;
+      dt.textContent = label;
+      dd.textContent = money(cents, currency);
+      row.append(dt, dd);
+      list.appendChild(row);
+    }
+    // What was ordered and what was charged; left out when Plant Stock doesn't send them
+    function showItems(order) {
+      var items = order.items || [];
+      var amounts = order.amounts;
+      var currency = amounts && amounts.currency;
+      var list = mp('item-list');
+      var totals = mp('amounts');
+      list.innerHTML = '';
+      totals.innerHTML = '';
+      items.forEach(function (item) {
+        var li = document.createElement('li');
+        var name = document.createElement('span');
+        var price = document.createElement('span');
+        name.textContent = item.title + (item.variant ? ' (' + item.variant + ')' : '') + ' × ' + item.quantity;
+        if (item.totalCents != null) price.textContent = money(item.totalCents, currency);
+        li.append(name, price);
+        list.appendChild(li);
+      });
+      if (amounts) {
+        addAmount(totals, 'Subtotal', amounts.subtotalCents, currency);
+        if (amounts.discountCents > 0) addAmount(totals, 'Discount', -amounts.discountCents, currency);
+        addAmount(totals, 'Tax', amounts.taxCents, currency);
+        addAmount(totals, 'Total', amounts.totalCents, currency, 'mp__total');
+        if (amounts.refundedCents > 0) addAmount(totals, 'Refunded', amounts.refundedCents, currency);
+      }
+      mp('items').hidden = !items.length && !amounts;
+    }
     function showOrder(order) {
       current = order;
+      showItems(order);
       mp('loading').hidden = true;
       lookupForm.hidden = true;
       orderBox.hidden = false;
