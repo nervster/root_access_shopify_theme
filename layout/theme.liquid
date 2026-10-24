@@ -51,7 +51,8 @@
         routes: {
           cartAdd: {{ routes.cart_add_url | append: '.js' | json }},
           cart: {{ routes.cart_url | append: '.js' | json }},
-          cartChange: {{ routes.cart_change_url | append: '.js' | json }}
+          cartChange: {{ routes.cart_change_url | append: '.js' | json }},
+          pickupSlots: '/apps/plant-stock/pickup-slots'
         },
         maxPlants: {{ settings.max_cart_plants | default: 8 }},
         cart: {

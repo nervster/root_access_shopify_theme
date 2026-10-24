@@ -2,7 +2,7 @@
   'use strict';
 
   var RA = window.RootAccess || {};
-  var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js' };
+  var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js', pickupSlots: '/apps/plant-stock/pickup-slots' };
   var limit = RA.maxPlants || 8;
   var limitMsg = 'You can order up to ' + limit + ' plants at a time.';
   var state = RA.cart || { count: 0, items: {} };
@@ -228,58 +228,130 @@
     if (box) filterGrid(box.closest('.collection'));
   });
 
-  /* Pickup date rules */
-  var dateInput = document.querySelector('[data-pickup-date]');
-  if (dateInput) {
-    var lead = parseInt(dateInput.getAttribute('data-lead-days') || '0', 10);
-    var closed = (dateInput.getAttribute('data-closed-days') || '')
-      .split(',').map(function (s) { return s.trim().slice(0, 3).toLowerCase(); }).filter(Boolean);
-    var names = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-    var err = document.querySelector('[data-pickup-error]');
-    function iso(d) {
-      var m = String(d.getMonth() + 1).padStart(2, '0');
-      var day = String(d.getDate()).padStart(2, '0');
-      return d.getFullYear() + '-' + m + '-' + day;
-    }
-    var min = new Date();
-    min.setDate(min.getDate() + lead);
-    while (closed.indexOf(names[min.getDay()]) !== -1) min.setDate(min.getDate() + 1);
-    dateInput.min = iso(min);
-    var max = new Date();
-    max.setDate(max.getDate() + 30);
-    dateInput.max = iso(max);
-
-    function check() {
-      var msg = '';
-      if (dateInput.value) {
-        var parts = dateInput.value.split('-');
-        var picked = new Date(+parts[0], +parts[1] - 1, +parts[2]);
-        if (dateInput.value < dateInput.min) msg = 'Pick a date on or after ' + dateInput.min + '.';
-        else if (dateInput.value > dateInput.max) msg = 'Pick a date within the next 30 days.';
-        else if (closed.indexOf(names[picked.getDay()]) !== -1) msg = 'Pickup isn\u2019t available on ' + names[picked.getDay()].replace(/^./, function (c) { return c.toUpperCase(); }) + '. Pick another day.';
-      }
-      dateInput.setCustomValidity(msg);
-      if (err) { err.textContent = msg; err.hidden = !msg; }
-      return !msg;
-    }
-    dateInput.addEventListener('change', check);
-    check();
-
+  /* Pickup date and window: Plant Stock decides which are open (App Proxy, signed by Shopify) */
+  var dateSelect = document.querySelector('[data-pickup-date]');
+  var windowSelect = document.querySelector('[data-pickup-window]');
+  if (dateSelect && windowSelect) {
+    var pickupErr = document.querySelector('[data-pickup-error]');
     var checkoutBtn = document.querySelector('[data-checkout]');
-    var cartForm = document.querySelector('[data-cart-form]');
-    if (checkoutBtn && cartForm) {
-      checkoutBtn.addEventListener('click', function (e) {
-        var win = cartForm.querySelector('[data-pickup-window]');
-        var problems = [];
-        if (!dateInput.value) problems.push('Pick a pickup date.');
-        else if (!check()) problems.push(dateInput.validationMessage);
-        if (win && !win.value) problems.push('Pick a pickup window.');
-        if (problems.length) {
-          e.preventDefault();
-          if (err) { err.textContent = problems.join(' '); err.hidden = false; }
-          (dateInput.value ? win : dateInput).focus();
-        }
+    var STALE_MS = 5 * 60 * 1000;
+    var UNAVAILABLE = 'Pickup times are unavailable right now. Please try again shortly.';
+    var GONE = 'That pickup time is no longer available. Please choose another.';
+    var days = null;
+    var loading = false;
+    var loadedAt = 0;
+    var confirmed = false;
+
+    function showPickupError(msg) {
+      if (!pickupErr) return;
+      pickupErr.textContent = msg || '';
+      pickupErr.hidden = !msg;
+    }
+    function dayFor(date) {
+      for (var i = 0; days && i < days.length; i++) if (days[i].date === date) return days[i];
+      return null;
+    }
+    // Keeps the current (or saved) window when it is still offered; otherwise the shopper picks again
+    function fillWindows(day) {
+      var keep = windowSelect.value || windowSelect.getAttribute('data-saved');
+      var slots = day ? day.slots : [];
+      windowSelect.innerHTML = '';
+      windowSelect.add(new Option(day ? 'Select a window' : 'Choose a date first', ''));
+      slots.forEach(function (slot) {
+        windowSelect.add(new Option(slot.window, slot.window, false, slot.window === keep));
       });
+      windowSelect.disabled = !slots.length;
+    }
+    // A <select> rather than a date input, so full or closed days can be shown greyed out
+    function fillDates() {
+      var keep = dateSelect.value || dateSelect.getAttribute('data-saved');
+      dateSelect.innerHTML = '';
+      dateSelect.add(new Option('Select a date', ''));
+      days.forEach(function (day) {
+        var open = day.slots.length > 0;
+        var label = new Date(day.date + 'T12:00:00').toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        var opt = new Option(open ? label : label + ' (full)', day.date, false, open && day.date === keep);
+        opt.disabled = !open;
+        dateSelect.add(opt);
+      });
+      dateSelect.disabled = false;
+      fillWindows(dayFor(dateSelect.value));
+    }
+    function loadSlots() {
+      loading = true;
+      return fetch(routes.pickupSlots, { headers: { 'Accept': 'application/json' } })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          if (!data || !Array.isArray(data.days)) throw new Error('Unexpected response');
+          days = data.days;
+          loadedAt = Date.now();
+          fillDates();
+          showPickupError('');
+          if (checkoutBtn) checkoutBtn.disabled = false;
+          return true;
+        })
+        .catch(function () {
+          // Never let a shopper check out with a slot Plant Stock didn't confirm
+          days = null;
+          dateSelect.disabled = true;
+          windowSelect.disabled = true;
+          showPickupError(UNAVAILABLE);
+          if (checkoutBtn) checkoutBtn.disabled = true;
+          return false;
+        })
+        .finally(function () { loading = false; });
+    }
+    function pickupProblem() {
+      if (!days) return loading ? 'Pickup times are still loading.' : UNAVAILABLE;
+      if (!dateSelect.value) return 'Pick a pickup date.';
+      if (!windowSelect.value) return 'Pick a pickup window.';
+      return '';
+    }
+    function focusPickup() { (dateSelect.value ? windowSelect : dateSelect).focus(); }
+
+    dateSelect.addEventListener('change', function () {
+      fillWindows(dayFor(dateSelect.value));
+      showPickupError('');
+    });
+    windowSelect.addEventListener('change', function () { showPickupError(''); });
+
+    if (checkoutBtn) {
+      checkoutBtn.addEventListener('click', function (e) {
+        if (confirmed) { confirmed = false; return; }
+        var problem = pickupProblem();
+        if (problem) {
+          e.preventDefault();
+          showPickupError(problem);
+          focusPickup();
+          return;
+        }
+        if (Date.now() - loadedAt < STALE_MS) return;
+        // Open a while: ask Plant Stock again before leaving for checkout
+        e.preventDefault();
+        var date = dateSelect.value;
+        var win = windowSelect.value;
+        checkoutBtn.classList.add('is-loading');
+        loadSlots().then(function (ok) {
+          checkoutBtn.classList.remove('is-loading');
+          if (!ok) return;
+          if (dateSelect.value !== date || windowSelect.value !== win) {
+            showPickupError(GONE);
+            focusPickup();
+            return;
+          }
+          confirmed = true;
+          checkoutBtn.click();
+        });
+      });
+    }
+
+    if (window.fetch) loadSlots();
+    else {
+      showPickupError(UNAVAILABLE);
+      if (checkoutBtn) checkoutBtn.disabled = true;
     }
   }
 })();
