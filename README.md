@@ -25,6 +25,7 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 - Picking a window holds it for the cart for 30 minutes, so no one else can book the one locker for that time. The hold is saved on the cart as `Pickup hold`, refreshed when the shopper clicks Check out, and released when the cart is emptied. Plant Stock turns it into a booking when the order comes in.
 - If the time was just taken, is now too soon, or the date or window is missing, the shopper stays on the cart with an inline message and fresh choices. If Plant Stock can't be reached, checkout is disabled.
 - Checkout is pickup-only. The checkout wording is overridden through the theme's language file, so buyers never see shipping options.
+- After ordering, customers use the **My pickup** page (`/pages/my-pickup`) to change their pickup time or cancel. They enter their order number and email; Plant Stock checks the pair with Shopify and answers with the order and what it allows (changing the time until pickup, cancelling with a full refund until 2 hours after the order is ready). No customer details are stored in the theme or the browser beyond a one-hour lookup key in `sessionStorage`.
 
 **Shopping experience**
 - Add to cart without a page reload, using Shopify's AJAX Cart API, with a status popup and a live cart count.
@@ -58,7 +59,7 @@ assets/      root-access.css (design system + layout), root-access.js (cart, dia
 config/      Theme settings schema; settings_data.json is maintained by Shopify
 layout/      Page shells (main storefront, password page)
 locales/     Storefront and checkout text overrides
-sections/    Page sections: hero, plant collection, pickup steps, cart, product, contact, header/footer groups
+sections/    Page sections: hero, plant collection, pickup steps, cart, My pickup, product, contact, header/footer groups
 snippets/    Reusable components: product card, product detail, logo, restock form, meta tags
 templates/   JSON templates that compose sections for each page type
 docs/        Store setup notes (e.g. pickup details in order emails)

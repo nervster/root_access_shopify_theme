@@ -12,6 +12,10 @@
       {%- for policy in shop.policies -%}
         <a href="{{ policy.url }}">{{ policy.title }}</a>
       {%- endfor -%}
+      {%- assign my_pickup_page = pages['my-pickup'] -%}
+      {%- if my_pickup_page.url != blank -%}
+        <a href="{{ my_pickup_page.url }}">My pickup</a>
+      {%- endif -%}
       {%- assign contact_page = pages['contact'] -%}
       {%- if contact_page.url != blank -%}
         <a href="{{ contact_page.url }}">Contact</a>

@@ -387,6 +387,24 @@ select.field__input { appearance: none; background-image: linear-gradient(45deg,
 .search-empty { color: var(--muted); max-width: 52ch; }
 .search-empty a { color: var(--brand); }
 .stack { margin-bottom: 28px; }
+
+/* My pickup */
+.mp__panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(18px, 4vw, 26px); }
+.mp__title { font-family: var(--display); font-size: 24px; font-weight: 700; margin-bottom: 12px; }
+.mp__title:focus { outline: none; }
+.mp__facts { margin: 0 0 14px; }
+.mp__facts div { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.mp__facts div:last-child { border-bottom: 1px solid var(--line); }
+.mp__facts dt { font-size: 14px; font-weight: 600; padding-top: 2px; }
+.mp__facts dd { margin: 0; }
+.mp__actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+.mp__actions .btn { flex: 1 1 200px; }
+.mp__step { border-top: 1px solid var(--line); padding-top: 18px; margin-bottom: 4px; }
+.mp__confirm-text { font-weight: 600; margin-bottom: 14px; }
+.mp__danger { background: var(--error); border-color: var(--error); }
+.mp__danger:hover:not([disabled]) { background: #8f1c13; border-color: #8f1c13; }
+.mp__note { color: var(--brand); font-weight: 600; }
+.mp__reset { background: none; border: 0; padding: 4px 0; color: var(--brand); font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .pager { display: flex; gap: 24px; justify-content: center; align-items: center; margin-top: 40px; color: var(--muted); }
 .pager a { color: var(--brand); font-weight: 600; }
 
