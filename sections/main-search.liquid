@@ -17,7 +17,7 @@
             {%- for item in search.results -%}
               {%- if item.object_type == 'product' -%}
                 {%- assign idx = paginate.current_offset | plus: forloop.index -%}
-                {% render 'product-card', product: item, index: idx, size_note: '', badge_default: 'The green collection' %}
+                {% render 'product-card', product: item, index: idx %}
               {%- endif -%}
             {%- endfor -%}
           </div>

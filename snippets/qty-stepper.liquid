@@ -1,0 +1,9 @@
+{%- comment -%}
+  How many of the form's variant are in the cart. Takes the place of the Add to cart button
+  once the variant is in the cart; root-access.js keeps it in step with the cart.
+{%- endcomment -%}
+<div class="qty" data-stepper hidden>
+  <button type="button" class="qty__btn" data-stepper-step="-1" aria-label="One fewer">&minus;</button>
+  <input class="qty__input" type="number" inputmode="numeric" min="0" step="1" value="0" aria-label="Quantity in cart" data-stepper-input>
+  <button type="button" class="qty__btn" data-stepper-step="1" aria-label="One more">+</button>
+</div>
