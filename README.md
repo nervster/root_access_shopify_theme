@@ -22,7 +22,8 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 **Pickup scheduling**
 - The cart collects a pickup **date** and a **time window** and saves them as Shopify cart attributes. They then appear on the order in the Shopify admin and can be added to customer emails.
 - Open dates and windows come from Plant Stock, the inventory app, through a Shopify App Proxy (`/apps/plant-stock/pickup-slots`) on the store's own domain. Plant Stock applies the 8-hour lead time, closed days and windows, and the 30-day booking limit; full days show greyed out.
-- If the cart has been open more than 5 minutes, it asks Plant Stock again before checkout. If the chosen time is gone, if the date or window is missing, or if Plant Stock can't be reached, checkout is blocked with an inline message.
+- Picking a window holds it for the cart for 30 minutes, so no one else can book the one locker for that time. The hold is saved on the cart as `Pickup hold`, refreshed when the shopper clicks Check out, and released when the cart is emptied. Plant Stock turns it into a booking when the order comes in.
+- If the time was just taken, is now too soon, or the date or window is missing, the shopper stays on the cart with an inline message and fresh choices. If Plant Stock can't be reached, checkout is disabled.
 - Checkout is pickup-only. The checkout wording is overridden through the theme's language file, so buyers never see shipping options.
 
 **Shopping experience**

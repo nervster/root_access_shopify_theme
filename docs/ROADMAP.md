@@ -55,9 +55,9 @@ Order ──webhook / minute check──▶ Plant Stock: hold → booking (or fl
 | Loading slots | One call when the cart page opens returns every free slot for the next 30 days, not one call per date. The list is fetched again after a "just taken" reply or when the page has been open a while |
 | What's saved on the order | Keep the existing `Pickup date` and `Pickup window` attributes (emails and the admin already use them), and add a hold ID. Plant Stock reads them from the order it already imports |
 | Clashes | If two orders end up in one slot, Plant Stock flags it and staff contact the customer to sort it out. The theme does nothing extra |
-| Pickup note | Keep it: an optional free-text `Pickup note` on the cart, saved on the order with the date and window |
+| Pickup note | No separate field. The cart's existing optional note ("Anything we should know?") is saved as the order note, and Plant Stock reads it from the imported order to show staff with the booking |
 | Final check at checkout | Not now. Blocking checkout needs a Shopify Function (cart and checkout validation), and Shopify only runs Functions from custom apps on Shopify Plus. Revisit if Plant Stock becomes a public app or the store moves to Plus. To confirm in Shopify's docs before we rely on this |
-| Orders over 4 plants | Don't use the locker. The cart says so and offers in-person pickup instead of locker slots, matching Plant Stock's rule |
+| Order size | Up to 8 plants per order (theme setting "Most plants per order"), and every order uses a locker slot. Plant Stock's "over 4 plants means in-person pickup" rule isn't applied in the cart for now; decide how to handle a bigger order if one ever doesn't fit |
 | If Plant Stock is down | The cart shows a clear "pickup times are unavailable, try again shortly" message and blocks checkout, rather than letting someone book a slot nobody checked |
 | Stock shown on the site | Comes from Shopify, which Plant Stock keeps up to date. The theme doesn't call Plant Stock for stock |
 
@@ -67,10 +67,9 @@ Order ──webhook / minute check──▶ Plant Stock: hold → booking (or fl
 - [ ] Check every page against real products synced from the Plant Stock staging site to the `root-access-staging` store: titles, descriptions, prices, pot-size variants, photos in the right order, sold-out state
 - [ ] Decide which product details Plant Stock should also send (for example light, water, pot size, care notes) and show them on the product page; agree the field names with Plant Stock
 - [ ] Show low stock ("only 2 left") from Shopify's inventory counts
-- [ ] Cart limits: count plants in the cart; over 4 plants switches to in-person pickup (see Decisions)
+- [x] Cart limits: up to 8 plants per order, all picked up from the locker (see Decisions)
 - [ ] Store settings before launch: payments, taxes, local pickup location, policies (refund, privacy, terms), password page off, domain
-- [ ] Optional `Pickup note` field in the cart, saved as a cart attribute
-- [ ] Order emails: add pickup details (and the note) to the confirmation email (`docs/notifications.md`)
+- [ ] Order emails: add pickup details to the confirmation email (`docs/notifications.md`)
 
 ### 2. Pickup slots in Plant Stock (`root_access_inventory_management`)
 These are built in the other repo; listed here so both sides agree on the contract.
@@ -85,9 +84,9 @@ These are built in the other repo; listed here so both sides agree on the contra
 
 ### 3. Pickup slots in the theme
 - [x] Cart page loads the 30 days of free slots from Plant Stock in one call instead of building windows in Liquid; fully booked days are marked in the date picker and taken windows disabled with "booked"
-- [ ] Picking a slot places a hold and saves `Pickup date`, `Pickup window`, and the hold ID on the cart
-- [ ] "That slot was just taken": refresh the list and ask the shopper to pick again
-- [ ] Refresh the hold when Checkout is clicked; release it when the slot changes or the cart is emptied
+- [x] Picking a slot places a hold and saves `Pickup date`, `Pickup window`, and the hold ID on the cart
+- [x] "That slot was just taken": refresh the list and ask the shopper to pick again
+- [x] Refresh the hold when Checkout is clicked; release it when the slot changes or the cart is emptied
 - [x] Loading, error, and "Plant Stock unavailable" states; keyboard and screen-reader friendly
 - [x] Remove the theme settings that Plant Stock now owns (window hours, lead days, closed days), or keep them only as display text
 - [ ] Test on the staging theme against Plant Stock staging, including two browsers racing for the same slot

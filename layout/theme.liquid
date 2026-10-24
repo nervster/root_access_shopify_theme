@@ -52,11 +52,14 @@
           cartAdd: {{ routes.cart_add_url | append: '.js' | json }},
           cart: {{ routes.cart_url | append: '.js' | json }},
           cartChange: {{ routes.cart_change_url | append: '.js' | json }},
-          pickupSlots: '/apps/plant-stock/pickup-slots'
+          cartUpdate: {{ routes.cart_update_url | append: '.js' | json }},
+          pickupSlots: '/apps/plant-stock/pickup-slots',
+          pickupHolds: '/apps/plant-stock/pickup-holds'
         },
         maxPlants: {{ settings.max_cart_plants | default: 8 }},
         cart: {
           count: {{ cart.item_count }},
+          hold: {{ cart.attributes['Pickup hold'] | default: '' | json }},
           items: { {%- for item in cart.items -%}"{{ item.variant_id }}": {{ item.quantity }}{% unless forloop.last %}, {% endunless %}{%- endfor -%} }
         }
       };
