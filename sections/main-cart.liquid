@@ -50,6 +50,7 @@
                 <option value="">Choose a date first</option>
               </select>
             </label>
+            <p class="field__hint" data-pickup-status role="status" hidden></p>
             <p class="field__hint" data-pickup-error role="alert" hidden></p>
             {%- if section.settings.pickup_hint != blank -%}<p class="field__hint">{{ section.settings.pickup_hint }}</p>{%- endif -%}
           </fieldset>
