@@ -94,12 +94,14 @@
       {%- if product.available -%}
         {%- liquid
           assign low_stock_at = settings.low_stock_at | default: 3
-          assign low_stock = false
-          if current.inventory_management == 'shopify' and current.inventory_policy == 'deny' and current.inventory_quantity > 0 and current.inventory_quantity <= low_stock_at
-            assign low_stock = true
+          assign stock_counted = false
+          if current.inventory_management == 'shopify' and current.inventory_policy == 'deny' and current.inventory_quantity > 0
+            assign stock_counted = true
           endif
         -%}
-        <p class="detail__stock" data-stock-note {% unless low_stock %}hidden{% endunless %}>{% if low_stock %}Only {{ current.inventory_quantity }} left{% endif %}</p>
+        <p class="detail__stock stock-note{% if stock_counted and current.inventory_quantity <= low_stock_at %} is-low{% endif %}" data-stock-note {% unless stock_counted %}hidden{% endunless %}>
+          {%- if stock_counted -%}{% if current.inventory_quantity <= low_stock_at %}Only {% endif %}{{ current.inventory_quantity }} left{%- endif -%}
+        </p>
         <button type="submit" class="btn btn--solid btn--block btn--lg" data-add-button>Add to cart</button>
         {% render 'qty-stepper' %}
       {%- else -%}

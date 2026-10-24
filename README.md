@@ -50,7 +50,7 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 - **Branching:** work happens on `feature/*` branches cut from `staging` and is merged through pull requests. `staging` is previewed on an unpublished Shopify theme, and only reviewed changes are merged to `main`, which is the live theme.
 - **Two-way sync:** Shopify commits edits made in the admin theme editor back to the connected branch as `shopify[bot]`, so content changes and code share one history.
 - **CI:** GitHub Actions runs Shopify's theme linter on every pull request and on every push to `main` and `staging`. Errors fail the build.
-- **Merchant-editable:** almost all copy, the per-order plant limit and the "Only N left" threshold are theme settings (pickup windows are set in Plant Stock), so the store owner can change them in the Shopify editor without code.
+- **Merchant-editable:** almost all copy, the per-order plant limit and the low-stock ("Only N left") threshold are theme settings (pickup windows are set in Plant Stock), so the store owner can change them in the Shopify editor without code.
 
 ## Project structure
 

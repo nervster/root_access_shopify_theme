@@ -115,13 +115,6 @@
     var detail = sel.closest('[data-detail]');
     var price = detail && detail.querySelector('[data-price-display]');
     if (price && opt) price.textContent = opt.getAttribute('data-price');
-    var note = detail && detail.querySelector('[data-stock-note]');
-    if (note && opt) {
-      var left = parseInt(opt.getAttribute('data-stock'), 10);
-      var low = left > 0 && left <= lowStockAt;
-      note.textContent = low ? 'Only ' + left + ' left' : '';
-      note.hidden = !low;
-    }
     var form = sel.closest('[data-add-form]');
     if (form) syncForm(form);
   });
@@ -203,7 +196,27 @@
     btn.hidden = qty > 0;
     if (document.activeElement !== input || qty === 0) input.value = qty;
     input.max = Math.min(stockOf(form), qty + limit - state.count);
+    var more = stepper.querySelector('[data-stepper-step="1"]');
+    more.setAttribute('aria-disabled', qty >= input.max ? 'true' : 'false');
+    syncStockNote(form, qty);
     if (hadFocus && document.activeElement && document.activeElement.closest('[hidden]')) (qty ? input : btn).focus();
+  }
+
+  // How many of the chosen plant are left, and how many of them this cart has; says so once it has them all
+  function syncStockNote(form, qty) {
+    var detail = form.closest('[data-detail]');
+    var scope = detail || form.closest('.card');
+    var note = scope && scope.querySelector(detail ? '[data-stock-note]' : '.card__body [data-stock-note]');
+    if (!note) return;
+    var left = stockOf(form);
+    if (left === Infinity || left < 1) { note.hidden = true; return; }
+    var all = qty >= left;
+    var text;
+    if (all) text = left === 1 ? 'The last one is in your cart' : 'All ' + left + ' are in your cart';
+    else text = (left <= lowStockAt ? 'Only ' : '') + left + ' left' + (qty ? ' · ' + qty + ' in your cart' : '');
+    note.textContent = text;
+    note.classList.toggle('is-low', all || left <= lowStockAt);
+    note.hidden = false;
   }
 
   var pending = {};
@@ -213,7 +226,7 @@
     var stock = stockOf(form);
     var room = have + limit - state.count;
     var qty = Math.max(0, Math.min(wanted, stock, room));
-    if (wanted > qty) showToast(stock < room ? 'Only ' + stock + ' available.' : limitMsg);
+    if (wanted > qty) showToast(stock < room ? 'That’s all we have: ' + (stock === 1 ? 'the last one is' : 'all ' + stock + ' are') + ' in your cart.' : limitMsg);
     form.querySelector('[data-stepper-input]').value = qty;
     clearTimeout(pending[id]);
     pending[id] = setTimeout(function () {
