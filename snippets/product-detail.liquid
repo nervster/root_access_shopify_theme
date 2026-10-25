@@ -93,7 +93,7 @@
 
       {%- if product.available -%}
         {%- liquid
-          assign low_stock_at = settings.low_stock_at | default: 3
+          assign low_stock_at = settings.low_stock_at | default: 1
           assign stock_counted = false
           if current.inventory_management == 'shopify' and current.inventory_policy == 'deny' and current.inventory_quantity > 0
             assign stock_counted = true

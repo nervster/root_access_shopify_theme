@@ -4,7 +4,7 @@
   var RA = window.RootAccess || {};
   var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js', cartUpdate: '/cart/update.js', pickupSlots: '/apps/plant-stock/pickup-slots', pickupHolds: '/apps/plant-stock/pickup-holds', myPickup: '/apps/plant-stock/my-pickup', plants: '/apps/plant-stock/plants', plantHolds: '/apps/plant-stock/plant-holds' };
   var limit = RA.maxPlants || 8;
-  var lowStockAt = RA.lowStockAt || 3;
+  var lowStockAt = RA.lowStockAt || 1;
   var limitMsg = 'You can order up to ' + limit + ' plants at a time.';
   var state = RA.cart || { count: 0, items: {} };
   state.plants = (state.plants || []).map(String); // the chosen plants (_plant) in the cart

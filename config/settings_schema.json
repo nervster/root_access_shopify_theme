@@ -28,7 +28,7 @@
   {
     "name": "Stock",
     "settings": [
-      { "type": "range", "id": "low_stock_at", "label": "Show \"Only N left\" at this many or fewer", "min": 1, "max": 10, "step": 1, "default": 3, "info": "Every plant shows how many are left; at this many or fewer it says \"Only N left\" in orange. Counts only plants Shopify tracks stock for." },
+      { "type": "range", "id": "low_stock_at", "label": "Show \"Only N left\" at this many or fewer", "min": 1, "max": 10, "step": 1, "default": 1, "info": "Every plant shows how many are left; at this many or fewer it says \"Only N left\" in orange. Counts only plants Shopify tracks stock for." },
       { "type": "checkbox", "id": "plant_picker", "label": "Shoppers choose their plants by photo", "default": false, "info": "Product pages show one photo per plant from Plant Stock, and shoppers add the ones they tap. Turn on only once Plant Stock's plant picker is live for this store; until then Add to cart would be blocked." }
     ]
   }
