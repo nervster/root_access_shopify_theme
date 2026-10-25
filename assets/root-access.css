@@ -308,6 +308,64 @@ h1, h2, h3 { overflow-wrap: break-word; }
 .detail__desc { margin-bottom: 20px; }
 .detail__pickup { margin-bottom: 26px; color: var(--muted); }
 .detail__stock { color: var(--clay); font-size: 15px; font-weight: 600; margin: 0 0 12px; }
+/* Plant picker: one photo per plant of the chosen pot size */
+.picker { border: 0; padding: 0; margin: 0 0 16px; min-width: 0; }
+.picker legend { padding: 0; margin-bottom: 2px; }
+.picker__hint { margin-bottom: 10px; }
+.picker__grid { list-style: none; margin: 0 0 10px; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(116px, 1fr)); gap: 10px; }
+.picker__grid li { position: relative; }
+.picker__plant {
+  position: relative; display: block; width: 100%; aspect-ratio: 1; padding: 0; overflow: hidden; cursor: pointer;
+  border: 2px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-2);
+  transition: border-color .18s var(--ease), box-shadow .18s var(--ease);
+}
+.picker__plant img { width: 100%; height: 100%; object-fit: cover; }
+.picker__plant:hover:not(:disabled) { border-color: var(--line-strong); }
+.picker__plant[aria-pressed="true"] { border-color: var(--brand); box-shadow: 0 0 0 2px var(--brand); }
+.picker__plant[aria-pressed="true"]::after {
+  content: "\2713"; position: absolute; top: 6px; right: 6px; display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%; background: var(--brand); color: #fff; font-size: 14px; font-weight: 700;
+}
+.picker__plant:disabled { cursor: default; }
+.picker__plant:disabled img { opacity: .5; }
+.picker__badge { position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 4px; background: rgba(21, 69, 34, .9); color: #fff; font-size: 12px; font-weight: 600; text-align: center; }
+.picker__zoom {
+  position: absolute; top: 6px; left: 6px; display: grid; place-items: center; width: 34px; height: 34px; padding: 0;
+  border: 0; border-radius: 50%; background: rgba(255, 255, 255, .92); color: var(--brand); box-shadow: 0 1px 3px rgba(26, 42, 31, .2); cursor: pointer;
+}
+.picker__zoom:hover { background: #fff; }
+
+/* Enlarged plant photo */
+.viewer {
+  width: min(600px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; margin: auto; padding: 16px;
+  background: var(--surface); color: var(--text); border: 0; border-radius: var(--radius); box-shadow: var(--shadow-lg);
+}
+.viewer::backdrop { background: rgba(10, 22, 14, .72); }
+.viewer[open] { animation: dlg .2s var(--ease); }
+.viewer__img { display: block; width: 100%; aspect-ratio: 1; max-height: calc(100dvh - 200px); object-fit: contain; background: var(--surface-2); border-radius: var(--radius-sm); }
+.viewer__close {
+  position: absolute; top: 24px; right: 24px; z-index: 1; width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255, 255, 255, .94); border: 1px solid var(--line-strong); font-size: 26px; line-height: 1; cursor: pointer;
+}
+.viewer__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 12px 0; }
+.viewer__count { font-weight: 600; font-size: 15px; color: var(--muted); }
+.viewer__nav {
+  width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--line-strong); background: transparent;
+  color: var(--brand); font-size: 28px; line-height: 1; cursor: pointer;
+}
+.viewer__nav:hover { border-color: var(--brand); }
+@media (pointer: coarse) { .picker__zoom { width: 40px; height: 40px; } }
+/* Phones: the enlarged photo fills the screen, with the buttons at the bottom within thumb reach */
+@media (max-width: 600px) {
+  .viewer { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .viewer[open] { display: flex; flex-direction: column; }
+  .viewer__img { flex: 1 1 auto; min-height: 0; height: auto; aspect-ratio: auto; max-height: none; }
+  .viewer__close { top: 20px; right: 20px; }
+}
+/* While choosing plants on a phone or tablet, the Add button stays in view as the photos scroll */
+@media (max-width: 860px) {
+  .detail__form[data-picking] [data-add-button] { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 2; box-shadow: var(--shadow-lg); }
+}
 .stock-note { color: var(--muted); font-weight: 600; }
 .stock-note.is-low { color: var(--clay); }
 .detail__form .detail__stock:last-child { margin: 12px 0 0; color: var(--muted); font-weight: 400; }
@@ -363,6 +421,7 @@ select.field__input { appearance: none; background-image: linear-gradient(45deg,
 }
 .line__remove:hover { background: var(--surface-2); color: var(--error); }
 .field__input--qty { width: 84px; text-align: center; }
+.line__qty--fixed { width: 84px; text-align: center; font-weight: 600; }
 .line__price { color: var(--text); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cart__side { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(18px, 4vw, 26px); }
 .cart__side .btn { margin-top: 10px; }

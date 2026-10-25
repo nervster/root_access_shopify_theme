@@ -102,6 +102,16 @@
         <p class="detail__stock stock-note{% if stock_counted and current.inventory_quantity <= low_stock_at %} is-low{% endif %}" data-stock-note {% unless stock_counted %}hidden{% endunless %}>
           {%- if stock_counted -%}{% if current.inventory_quantity <= low_stock_at %}Only {% endif %}{{ current.inventory_quantity }} left{%- endif -%}
         </p>
+        {%- if settings.plant_picker -%}
+          {%- comment -%} Filled by root-access.js from Plant Stock: one photo per plant of the chosen pot size {%- endcomment -%}
+          <fieldset class="picker" data-plant-picker hidden>
+            <legend class="field__label">Choose your plants</legend>
+            <p class="field__hint picker__hint">Each photo is a plant we have right now. Tap the ones you want.</p>
+            <ul class="picker__grid" data-picker-grid></ul>
+            <p class="field__hint" data-picker-status role="status" hidden></p>
+            <p class="field__hint" data-picker-error role="alert" hidden></p>
+          </fieldset>
+        {%- endif -%}
         <button type="submit" class="btn btn--solid btn--block btn--lg" data-add-button>Add to cart</button>
         {% render 'qty-stepper' %}
       {%- else -%}
