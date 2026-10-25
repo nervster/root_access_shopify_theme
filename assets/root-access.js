@@ -360,12 +360,19 @@
         btn.appendChild(badge);
         btn.disabled = true;
       }
-      li.appendChild(btn);
+      var zoom = document.createElement('button');
+      zoom.type = 'button';
+      zoom.className = 'picker__zoom';
+      zoom.setAttribute('data-plant-zoom', i);
+      zoom.setAttribute('aria-label', 'Enlarge ' + label.toLowerCase());
+      zoom.innerHTML = ZOOM_ICON;
+      li.append(btn, zoom);
       grid.appendChild(li);
     });
     var choosable = pick.plants.some(function (p) { return !inCart(p.id); });
     pickerSay(picker, 'status', !total ? 'This size is sold out.' : choosable ? '' : 'All of these plants are in your cart.');
     syncAddButton(form);
+    if (viewer && viewer.open && viewing.form === form) showInViewer(); // the list changed under the enlarged photo
   }
   // Answers for an older pot size, or from before a newer request, are ignored
   function loadPlants(form) {
@@ -415,14 +422,11 @@
     });
   }
 
-  document.addEventListener('click', function (e) {
-    var tile = e.target.closest('.picker__plant');
-    if (!tile || tile.disabled) return;
-    var form = tile.closest('[data-add-form]');
+  // Chooses or unchooses one plant, from its tile or the enlarged view
+  function togglePlant(form, id) {
     var picker = pickerOf(form);
     var pick = picker.pick;
-    if (pick.mode !== 'ready') return;
-    var id = parseInt(tile.getAttribute('data-plant-id'), 10);
+    if (pick.mode !== 'ready' || inCart(id)) return;
     var at = pick.selected.indexOf(id);
     if (at === -1) {
       if (state.count + pick.selected.length + 1 > limit) { pickerSay(picker, 'error', limitMsg); return; }
@@ -430,9 +434,78 @@
     } else {
       pick.selected.splice(at, 1);
     }
-    tile.setAttribute('aria-pressed', at === -1 ? 'true' : 'false');
+    var tile = picker.querySelector('[data-plant-id="' + id + '"]');
+    if (tile) tile.setAttribute('aria-pressed', at === -1 ? 'true' : 'false');
     pickerSay(picker, 'error', '');
     syncAddButton(form);
+  }
+  document.addEventListener('click', function (e) {
+    var tile = e.target.closest('.picker__plant');
+    if (!tile || tile.disabled) return;
+    togglePlant(tile.closest('[data-add-form]'), parseInt(tile.getAttribute('data-plant-id'), 10));
+  });
+
+  /* Enlarged plant photos: one viewer for the page, opened from a tile's enlarge button. It sits on
+     top of the quick view when opened from one, and steps through that pot size's plants */
+  var ZOOM_ICON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21M10.5 7.5v6M7.5 10.5h6"/></svg>';
+  var viewer = null;
+  var viewing = { form: null, index: 0 };
+  function buildViewer() {
+    viewer = document.createElement('dialog');
+    viewer.className = 'viewer';
+    viewer.setAttribute('aria-label', 'Plant photo');
+    viewer.innerHTML =
+      '<button type="button" class="viewer__close" data-close-dialog aria-label="Close">&times;</button>' +
+      '<img class="viewer__img" alt="" data-viewer-img>' +
+      '<div class="viewer__bar">' +
+        '<button type="button" class="viewer__nav" data-viewer-step="-1" aria-label="Previous plant">&lsaquo;</button>' +
+        '<span class="viewer__count" data-viewer-count aria-live="polite"></span>' +
+        '<button type="button" class="viewer__nav" data-viewer-step="1" aria-label="Next plant">&rsaquo;</button>' +
+      '</div>' +
+      '<button type="button" class="btn btn--solid btn--block" data-viewer-choose></button>';
+    document.body.appendChild(viewer);
+    viewer.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); stepViewer(-1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); stepViewer(1); }
+    });
+  }
+  function showInViewer() {
+    var plants = pickerOf(viewing.form).pick.plants;
+    if (!plants.length) { viewer.close(); return; }
+    viewing.index = Math.min(viewing.index, plants.length - 1);
+    var plant = plants[viewing.index];
+    var chosen = pickerOf(viewing.form).pick.selected.indexOf(plant.id) !== -1;
+    var mine = inCart(plant.id);
+    var choose = viewer.querySelector('[data-viewer-choose]');
+    viewer.querySelector('[data-viewer-img]').src = plant.photo;
+    viewer.querySelector('[data-viewer-count]').textContent = 'Plant ' + (viewing.index + 1) + ' of ' + plants.length;
+    viewer.querySelectorAll('[data-viewer-step]').forEach(function (b) { b.hidden = plants.length < 2; });
+    choose.textContent = mine ? 'In your cart' : chosen ? 'Chosen ✓ (tap to unchoose)' : 'Choose this plant';
+    choose.disabled = mine;
+    choose.classList.toggle('btn--outline', chosen);
+    choose.classList.toggle('btn--solid', !chosen);
+  }
+  function stepViewer(by) {
+    var n = pickerOf(viewing.form).pick.plants.length;
+    viewing.index = (viewing.index + by + n) % n;
+    showInViewer();
+  }
+  document.addEventListener('click', function (e) {
+    var zoom = e.target.closest('[data-plant-zoom]');
+    if (zoom) {
+      if (!viewer) buildViewer();
+      viewing.form = zoom.closest('[data-add-form]');
+      viewing.index = parseInt(zoom.getAttribute('data-plant-zoom'), 10);
+      showInViewer();
+      viewer.showModal();
+      return;
+    }
+    var step = e.target.closest('[data-viewer-step]');
+    if (step) { stepViewer(parseInt(step.getAttribute('data-viewer-step'), 10)); return; }
+    if (e.target.closest('[data-viewer-choose]')) {
+      togglePlant(viewing.form, pickerOf(viewing.form).pick.plants[viewing.index].id);
+      showInViewer();
+    }
   });
 
   // Hold the chosen plants first, then add one cart line per plant; give the holds back if that fails
