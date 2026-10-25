@@ -93,10 +93,14 @@
 
       {%- if product.available -%}
         {%- liquid
-          assign low_stock_at = settings.low_stock_at | default: 3
+          assign low_stock_at = settings.low_stock_at | default: 1
           assign stock_counted = false
           if current.inventory_management == 'shopify' and current.inventory_policy == 'deny' and current.inventory_quantity > 0
             assign stock_counted = true
+          endif
+          # With the plant picker, root-access.js shows the number of plant photos once they load
+          if settings.plant_picker
+            assign stock_counted = false
           endif
         -%}
         <p class="detail__stock stock-note{% if stock_counted and current.inventory_quantity <= low_stock_at %} is-low{% endif %}" data-stock-note {% unless stock_counted %}hidden{% endunless %}>
