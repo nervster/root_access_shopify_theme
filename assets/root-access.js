@@ -169,6 +169,7 @@
 
   /* Cart quantities: a stepper takes the Add to cart button's place once a plant is in the cart */
   function applyCart(cart) {
+    if (cart.token) cartToken = cart.token;
     state.count = cart.item_count;
     state.items = {};
     state.plants = [];
@@ -546,7 +547,9 @@
             }
             pick.selected = [];
             showToast(ids.length === 1 ? 'Plant added to cart' : ids.length + ' plants added to cart');
-            return refreshCart().then(function () { renderPlants(form); });
+            return refreshCart()
+              .then(function () { if (cartToken !== token) return moveHolds(token, cartToken, ids); })
+              .then(function () { renderPlants(form); });
           });
         }
         var code = r.data && r.data.error;
@@ -566,6 +569,14 @@
       })
       .catch(function () { setPickerMode(form, 'unavailable'); })
       .finally(function () { btn.classList.remove('is-loading'); });
+  }
+
+  // An empty cart's token can change when its first item goes in, so plants held just before that would
+  // look like another cart's at Checkout: move their holds to the token the cart has now
+  function moveHolds(from, to, ids) {
+    return postJSON(routes.plantHolds + '/release', { cartToken: from, plants: ids })
+      .then(function () { return postJSON(routes.plantHolds, { cartToken: to, plants: ids }); })
+      .catch(function () { /* Checkout's refresh holds them again, or says which are gone */ });
   }
 
   if (RA.plantPicker && window.fetch) {
@@ -622,33 +633,51 @@
     plantError.textContent = msg || '';
     plantError.hidden = !msg;
   }
-  // Takes the plants someone else got out of the cart, then reloads it and says which they were
-  var TAKEN_NOTE = 'raPlantsTaken';
+  // Plants that can't be bought any more stay in the cart, marked, until the shopper has read why and
+  // chosen to remove them; then the cart reloads without them
+  var goneBox = document.querySelector('[data-plant-gone]');
+  var goneKeys = [];
   function removeTakenPlants(ids) {
-    var updates = {};
-    var names = [];
+    var counts = {};
+    var order = [];
+    var total = 0;
+    goneKeys = [];
     plantLines().forEach(function (li) {
-      if (ids.indexOf(li.getAttribute('data-plant')) === -1) return;
-      updates[li.getAttribute('data-line-key')] = 0;
-      names.push(li.getAttribute('data-plant-name'));
+      var gone = ids.indexOf(li.getAttribute('data-plant')) !== -1;
+      li.classList.toggle('line--gone', gone);
+      var note = li.querySelector('.line__gone');
+      if (note) note.hidden = !gone;
+      if (!gone) return;
+      var name = li.getAttribute('data-plant-name');
+      if (!counts[name]) { counts[name] = 0; order.push(name); }
+      counts[name]++;
+      total++;
+      goneKeys.push(li.getAttribute('data-line-key'));
     });
-    if (!names.length) { showPlantError(PLANTS_UNAVAILABLE); return Promise.resolve(false); }
-    var msg = 'Someone else just chose ' + (names.length === 1 ? 'one of your plants' : names.length + ' of your plants') +
-      ' (' + names.join(', ') + '), so we’ve taken ' + (names.length === 1 ? 'it' : 'them') + ' out of your cart. Please choose another.';
-    return postJSON(routes.cartUpdate, { updates: updates })
-      .catch(function () {})
-      .then(function () {
-        try { sessionStorage.setItem(TAKEN_NOTE, msg); } catch (err) { /* the message is then lost on reload */ }
-        window.location.reload();
-        return false;
-      });
+    if (!total || !goneBox) { showPlantError(PLANTS_UNAVAILABLE); return Promise.resolve(false); }
+    var list = order.map(function (name) { return counts[name] > 1 ? name + ' × ' + counts[name] : name; }).join(', ');
+    goneBox.querySelector('[data-plant-gone-text]').textContent =
+      (total === 1 ? 'One of the plants you chose is' : total + ' of the plants you chose are') +
+      ' no longer available (' + list + '). Someone else may have ordered ' + (total === 1 ? 'it' : 'them') +
+      ' first. Remove ' + (total === 1 ? 'it' : 'them') + ' to continue to checkout, then choose another if you like.';
+    goneBox.querySelector('[data-plant-gone-remove]').textContent = total === 1 ? 'Remove it' : 'Remove them';
+    goneBox.hidden = false;
+    goneBox.querySelector('[data-plant-gone-remove]').focus();
+    return Promise.resolve(false);
   }
-  if (plantError) {
-    try {
-      var takenNote = sessionStorage.getItem(TAKEN_NOTE);
-      if (takenNote) { sessionStorage.removeItem(TAKEN_NOTE); showPlantError(takenNote); }
-    } catch (err) { /* no note to show */ }
+  if (goneBox) {
+    goneBox.querySelector('[data-plant-gone-remove]').addEventListener('click', function () {
+      var btn = this;
+      var updates = {};
+      goneKeys.forEach(function (key) { updates[key] = 0; });
+      btn.classList.add('is-loading');
+      postJSON(routes.cartUpdate, { updates: updates })
+        .catch(function () {})
+        .then(function () { window.location.reload(); });
+    });
   }
+  // A note left by the earlier version of this message (it showed after a reload) is no longer used
+  try { sessionStorage.removeItem('raPlantsTaken'); } catch (err) { /* nothing stored */ }
 
   /* Cart page: no more than the plant limit per order */
   var cartPageForm = document.querySelector('[data-cart-form]');

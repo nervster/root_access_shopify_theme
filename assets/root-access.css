@@ -422,6 +422,10 @@ select.field__input { appearance: none; background-image: linear-gradient(45deg,
 .line__remove:hover { background: var(--surface-2); color: var(--error); }
 .field__input--qty { width: 84px; text-align: center; }
 .line__qty--fixed { width: 84px; text-align: center; font-weight: 600; }
+.line--gone .line__img img, .line--gone .line__title, .line--gone .line__price { opacity: .5; }
+.line__gone { color: var(--error); font-size: 14px; font-weight: 600; }
+.plant-gone { border: 1.5px solid var(--error); border-radius: var(--radius-sm); padding: 12px 14px; margin: 4px 0 12px; color: var(--error); font-size: 15px; }
+.plant-gone p { margin-bottom: 10px; }
 .line__price { color: var(--text); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
 .cart__side { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: clamp(18px, 4vw, 26px); }
 .cart__side .btn { margin-top: 10px; }

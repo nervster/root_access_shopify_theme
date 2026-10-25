@@ -23,6 +23,7 @@
                 {%- if g != blank -%}<p class="line__genus mono">{{ g | upcase }}</p>{%- endif -%}
                 <a class="line__title" href="{{ item.url }}">{{ item.product.title }}</a>
                 {%- unless item.product.has_only_default_variant -%}<p class="line__variant">{{ item.variant.title }}</p>{%- endunless -%}
+                {%- if plant != blank -%}<p class="line__gone" hidden>No longer available</p>{%- endif -%}
               </div>
               {%- if plant != blank -%}
                 {%- comment -%} One chosen plant per line: no quantity to change, only remove {%- endcomment -%}
@@ -77,6 +78,10 @@
           </div>
           <p class="field__hint" data-qty-error role="alert" hidden></p>
           <p class="field__hint" data-plant-error role="alert" hidden></p>
+          <div class="plant-gone" data-plant-gone role="alert" hidden>
+            <p data-plant-gone-text></p>
+            <button type="button" class="btn btn--outline btn--block" data-plant-gone-remove>Remove them</button>
+          </div>
           <p class="field__hint">All orders are for local pickup in Houston. We don't ship. Taxes are calculated at checkout.</p>
           <button type="submit" name="update" class="btn btn--outline btn--block" formnovalidate>Update cart</button>
           <button type="submit" name="checkout" class="btn btn--solid btn--block btn--lg" data-checkout>Check out</button>
