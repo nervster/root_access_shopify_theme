@@ -354,6 +354,18 @@ h1, h2, h3 { overflow-wrap: break-word; }
   color: var(--brand); font-size: 28px; line-height: 1; cursor: pointer;
 }
 .viewer__nav:hover { border-color: var(--brand); }
+@media (pointer: coarse) { .picker__zoom { width: 40px; height: 40px; } }
+/* Phones: the enlarged photo fills the screen, with the buttons at the bottom within thumb reach */
+@media (max-width: 600px) {
+  .viewer { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border-radius: 0; padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+  .viewer[open] { display: flex; flex-direction: column; }
+  .viewer__img { flex: 1 1 auto; min-height: 0; height: auto; aspect-ratio: auto; max-height: none; }
+  .viewer__close { top: 20px; right: 20px; }
+}
+/* While choosing plants on a phone or tablet, the Add button stays in view as the photos scroll */
+@media (max-width: 860px) {
+  .detail__form[data-picking] [data-add-button] { position: sticky; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 2; box-shadow: var(--shadow-lg); }
+}
 .stock-note { color: var(--muted); font-weight: 600; }
 .stock-note.is-low { color: var(--clay); }
 .detail__form .detail__stock:last-child { margin: 12px 0 0; color: var(--muted); font-weight: 400; }
