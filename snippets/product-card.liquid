@@ -21,7 +21,7 @@
       endif
     endif
   endfor
-  assign low_stock_at = settings.low_stock_at | default: 3
+  assign low_stock_at = settings.low_stock_at | default: 1
 -%}
 <article class="card{% unless product.available %} is-soldout{% endunless %}" data-price="{{ price_bucket }}" data-search="{{ search_text | escape }}">
   <a class="card__media" href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">
