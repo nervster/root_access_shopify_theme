@@ -41,7 +41,8 @@
       <h3 class="card__title"><a href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">{{ product.title }}</a></h3>
       {% render 'price-mono', product: product %}
     </div>
-    {%- if stock_counted and stock_left > 0 -%}
+    {%- comment -%} With the plant picker, the count comes from the plant photos, which cards don't load {%- endcomment -%}
+    {%- if stock_counted and stock_left > 0 and settings.plant_picker != true -%}
       <p class="card__stock stock-note{% if stock_left <= low_stock_at %} is-low{% endif %}" data-stock-note>{% if stock_left <= low_stock_at %}Only {% endif %}{{ stock_left }} left</p>
     {%- endif -%}
     <a class="card__link" href="{{ product.url }}" data-open-dialog="ProductDialog-{{ product.id }}">

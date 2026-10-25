@@ -236,11 +236,14 @@
     var note = scope && scope.querySelector(detail ? '[data-stock-note]' : '.card__body [data-stock-note]');
     if (!note) return;
     var left = stockOf(form);
-    // Shopify's count is from when the page was built; once the plant photos have loaded (live from Plant
-    // Stock, this cart's plants included), never claim more than shoppers can choose
-    var picker = pickerOf(form);
-    var pick = picker && picker.pick;
-    if (pick && pick.mode === 'ready' && pick.variant === variantField(form).value) left = Math.min(left, pick.plants.length);
+    // With the plant picker, the count is the plants shoppers can choose (live from Plant Stock, this cart's
+    // plants included), shown once they've loaded. Shopify's count, read when the page was built, is only
+    // used for pot sizes the picker doesn't cover
+    if (form.hasAttribute('data-picking')) {
+      var pick = pickerOf(form).pick;
+      if (!pick || pick.mode !== 'ready' || pick.variant !== variantField(form).value) { note.hidden = true; return; }
+      left = pick.plants.length;
+    }
     if (left === Infinity || left < 1) { note.hidden = true; return; }
     var all = qty >= left;
     var text;
