@@ -27,6 +27,10 @@ The theme is built from scratch on Shopify's Online Store 2.0 architecture. It d
 - Checkout is pickup-only. The checkout wording is overridden through the theme's language file, so buyers never see shipping options.
 - After ordering, customers use the **My pickup** page (`/pages/my-pickup`) to change their pickup time or cancel. They enter their order number and email; Plant Stock checks the pair with Shopify and answers with the order and what it allows (changing the time until pickup, cancelling with a full refund until 2 hours after the order is ready). No customer details are stored in the theme or the browser beyond a one-hour lookup key in `sessionStorage`.
 
+**Choosing plants by photo** (theme setting, off until Plant Stock's endpoints are live)
+- Picking a pot size shows one photo per plant Plant Stock has for it (`/apps/plant-stock/plants`), and shoppers tap the ones they want. The chosen plants are held for their cart for 30 minutes (`plant-holds`), then added as one cart line each, with a hidden `_plant` property Plant Stock reads when the order comes in.
+- Those lines can only be removed (which gives the plant back), not changed in quantity. Checkout refreshes the plant holds along with the pickup hold; a plant someone else got first is taken out of the cart, and the shopper is told which one.
+
 **Shopping experience**
 - Add to cart without a page reload, using Shopify's AJAX Cart API, with a status popup and a live cart count.
 - Product quick view built on the native `<dialog>` element, sharing one detail layout with the full product page.

@@ -100,5 +100,5 @@ These are built in the other repo; listed here so both sides agree on the contra
 ### 5. Later
 - [ ] One-hour slots instead of windows, with the locker held until the order is picked up (then released for the next booking)
 - [ ] More lockers and pickup locations: the cart shows a location picker when there's more than one
-- [ ] Customers pick a specific plant from its photos (needs Plant Stock to expose individual plants)
+- [ ] Customers pick a specific plant from its photos: built in the theme behind the "Shoppers choose their plants by photo" setting, against Plant Stock's `docs/plant-picker-storefront.md`; turn it on once Plant Stock's endpoints are live, then test on staging
 - [ ] Final slot check inside checkout, if the store moves to Plus or the app goes public

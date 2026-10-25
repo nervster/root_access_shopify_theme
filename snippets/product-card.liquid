@@ -48,7 +48,8 @@
       {%- if product.images.size > 1 -%}See what it can grow into{%- else -%}View details{%- endif -%}
     </a>
     {%- if product.available -%}
-      {%- if product.has_only_default_variant -%}
+      {%- comment -%} With the plant picker, plants are chosen by photo in the quick view, not added from the card {%- endcomment -%}
+      {%- if product.has_only_default_variant and settings.plant_picker != true -%}
         {%- liquid
           assign v = product.selected_or_first_available_variant
           assign v_stock = ''
@@ -63,7 +64,7 @@
         {%- endform -%}
       {%- else -%}
         <div class="card__form">
-          <button type="button" class="btn btn--outline btn--block" data-open-dialog="ProductDialog-{{ product.id }}">Choose an option</button>
+          <button type="button" class="btn btn--outline btn--block" data-open-dialog="ProductDialog-{{ product.id }}">{% if settings.plant_picker %}Choose your plants{% else %}Choose an option{% endif %}</button>
         </div>
       {%- endif -%}
     {%- else -%}

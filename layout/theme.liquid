@@ -55,13 +55,17 @@
           cartUpdate: {{ routes.cart_update_url | append: '.js' | json }},
           pickupSlots: '/apps/plant-stock/pickup-slots',
           pickupHolds: '/apps/plant-stock/pickup-holds',
-          myPickup: '/apps/plant-stock/my-pickup'
+          myPickup: '/apps/plant-stock/my-pickup',
+          plants: '/apps/plant-stock/plants',
+          plantHolds: '/apps/plant-stock/plant-holds'
         },
+        plantPicker: {{ settings.plant_picker | json }},
         maxPlants: {{ settings.max_cart_plants | default: 8 }},
         lowStockAt: {{ settings.low_stock_at | default: 3 }},
         cart: {
           count: {{ cart.item_count }},
           hold: {{ cart.attributes['Pickup hold'] | default: '' | json }},
+          plants: [{%- for item in cart.items -%}{%- if item.properties['_plant'] != blank -%}{{ item.properties['_plant'] | json }},{%- endif -%}{%- endfor -%}],
           items: { {%- for item in cart.items -%}"{{ item.variant_id }}": {{ item.quantity }}{% unless forloop.last %}, {% endunless %}{%- endfor -%} }
         }
       };

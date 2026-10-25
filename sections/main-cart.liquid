@@ -7,7 +7,10 @@
       <form action="{{ routes.cart_url }}" method="post" class="cart" id="CartForm" novalidate data-cart-form>
         <ul class="cart__lines">
           {%- for item in cart.items -%}
-            <li class="line">
+            {%- comment -%} _plant is the plant chosen by photo (Plant Stock's ID): kept on the line, never shown {%- endcomment -%}
+            {%- assign plant = item.properties['_plant'] -%}
+            {%- capture line_name -%}{{ item.product.title }}{% unless item.product.has_only_default_variant %} ({{ item.variant.title }}){% endunless %}{%- endcapture -%}
+            <li class="line"{% if plant != blank %} data-plant="{{ plant | escape }}" data-line-key="{{ item.key }}" data-plant-name="{{ line_name | escape }}"{% endif %}>
               <a class="line__img" href="{{ item.url }}">
                 {%- if item.image -%}
                   {{ item.image | image_url: width: 240 | image_tag: loading: 'lazy', alt: item.product.title }}
@@ -21,12 +24,20 @@
                 <a class="line__title" href="{{ item.url }}">{{ item.product.title }}</a>
                 {%- unless item.product.has_only_default_variant -%}<p class="line__variant">{{ item.variant.title }}</p>{%- endunless -%}
               </div>
-              <label class="line__qty">
-                <span class="visually-hidden">Quantity for {{ item.product.title }}</span>
-                <input class="field__input field__input--qty" type="number" name="updates[]" value="{{ item.quantity }}" min="0" {% if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny' %}max="{{ item.variant.inventory_quantity }}"{% endif %} data-qty>
-              </label>
+              {%- if plant != blank -%}
+                {%- comment -%} One chosen plant per line: no quantity to change, only remove {%- endcomment -%}
+                <span class="line__qty line__qty--fixed">
+                  <span class="visually-hidden">Quantity for {{ item.product.title }}:</span> 1
+                  <input type="hidden" name="updates[]" value="1" data-qty>
+                </span>
+              {%- else -%}
+                <label class="line__qty">
+                  <span class="visually-hidden">Quantity for {{ item.product.title }}</span>
+                  <input class="field__input field__input--qty" type="number" name="updates[]" value="{{ item.quantity }}" min="0" {% if item.variant.inventory_management == 'shopify' and item.variant.inventory_policy == 'deny' %}max="{{ item.variant.inventory_quantity }}"{% endif %} data-qty>
+                </label>
+              {%- endif -%}
               <span class="line__price">{{ item.final_line_price | money }}</span>
-              <a class="line__remove" href="{{ item.url_to_remove }}" aria-label="Remove {{ item.product.title | escape }} from cart" title="Remove">
+              <a class="line__remove" href="{{ item.url_to_remove }}" aria-label="Remove {{ item.product.title | escape }} from cart" title="Remove"{% if plant != blank %} data-plant-remove="{{ plant | escape }}"{% endif %}>
                 <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
                   <path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/>
                 </svg>
@@ -65,6 +76,7 @@
             <span class="cart__total-val">{{ cart.total_price | money }}</span>
           </div>
           <p class="field__hint" data-qty-error role="alert" hidden></p>
+          <p class="field__hint" data-plant-error role="alert" hidden></p>
           <p class="field__hint">All orders are for local pickup in Houston. We don't ship. Taxes are calculated at checkout.</p>
           <button type="submit" name="update" class="btn btn--outline btn--block" formnovalidate>Update cart</button>
           <button type="submit" name="checkout" class="btn btn--solid btn--block btn--lg" data-checkout>Check out</button>

@@ -2,11 +2,12 @@
   'use strict';
 
   var RA = window.RootAccess || {};
-  var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js', cartUpdate: '/cart/update.js', pickupSlots: '/apps/plant-stock/pickup-slots', pickupHolds: '/apps/plant-stock/pickup-holds', myPickup: '/apps/plant-stock/my-pickup' };
+  var routes = RA.routes || { cartAdd: '/cart/add.js', cart: '/cart.js', cartChange: '/cart/change.js', cartUpdate: '/cart/update.js', pickupSlots: '/apps/plant-stock/pickup-slots', pickupHolds: '/apps/plant-stock/pickup-holds', myPickup: '/apps/plant-stock/my-pickup', plants: '/apps/plant-stock/plants', plantHolds: '/apps/plant-stock/plant-holds' };
   var limit = RA.maxPlants || 8;
   var lowStockAt = RA.lowStockAt || 3;
   var limitMsg = 'You can order up to ' + limit + ' plants at a time.';
   var state = RA.cart || { count: 0, items: {} };
+  state.plants = (state.plants || []).map(String); // the chosen plants (_plant) in the cart
   var PICKUP_CLEARED = { 'Pickup date': '', 'Pickup window': '', 'Pickup hold': '' };
 
   // Resolves { status, data } for any HTTP answer; rejects only when the network fails
@@ -25,6 +26,14 @@
   }
   function saveCartAttributes(attrs) {
     return postJSON(routes.cartUpdate, { attributes: attrs });
+  }
+  // Plant Stock knows a cart (its pickup and plant holds) by the cart's token
+  var cartToken = '';
+  function loadCartToken() {
+    if (cartToken) return Promise.resolve(cartToken);
+    return fetch(routes.cart, { headers: { 'Accept': 'application/json' } })
+      .then(function (res) { return res.json(); })
+      .then(function (cart) { cartToken = cart.token; return cartToken; });
   }
 
   /* Pickup slots from Plant Stock's pickup-slots answer, for the cart and My pickup */
@@ -72,6 +81,7 @@
       if (dlg && typeof dlg.showModal === 'function') {
         e.preventDefault();
         dlg.showModal();
+        openPickers(dlg);
         return;
       }
     }
@@ -117,6 +127,7 @@
     if (price && opt) price.textContent = opt.getAttribute('data-price');
     var form = sel.closest('[data-add-form]');
     if (form) syncForm(form);
+    if (form && pickerOf(form)) loadPlants(form);
   });
 
   /* Add to cart without leaving the page */
@@ -137,6 +148,7 @@
     var form = e.target.closest('[data-add-form]');
     if (!form || !window.fetch) return;
     e.preventDefault();
+    if (form.hasAttribute('data-picking')) { addPlants(form); return; }
     if (state.count + 1 > limit) { showToast(limitMsg); return; }
     var btn = form.querySelector('[type="submit"]');
     if (btn) btn.classList.add('is-loading');
@@ -159,9 +171,16 @@
   function applyCart(cart) {
     state.count = cart.item_count;
     state.items = {};
-    cart.items.forEach(function (it) { state.items[it.variant_id] = (state.items[it.variant_id] || 0) + it.quantity; });
+    state.plants = [];
+    cart.items.forEach(function (it) {
+      state.items[it.variant_id] = (state.items[it.variant_id] || 0) + it.quantity;
+      if (it.properties && it.properties._plant) state.plants.push(String(it.properties._plant));
+    });
     setCount(cart.item_count);
     document.querySelectorAll('[data-add-form]').forEach(syncForm);
+    document.querySelectorAll('[data-plant-picker]').forEach(function (picker) {
+      if (picker.pick && picker.pick.mode === 'ready') renderPlants(picker.closest('[data-add-form]'));
+    });
     releaseIfEmpty(cart);
   }
   // An emptied cart gives its pickup slot back (the hold would otherwise run its 30 minutes)
@@ -192,6 +211,13 @@
     var qty = state.items[variantField(form).value] || 0;
     var input = stepper.querySelector('[data-stepper-input]');
     var hadFocus = form.contains(document.activeElement) && document.activeElement !== variantField(form);
+    if (form.hasAttribute('data-picking')) {
+      // Chosen plants are added by photo, one line each, so there's no quantity to step
+      stepper.hidden = true;
+      btn.hidden = false;
+      syncStockNote(form, qty);
+      return;
+    }
     stepper.hidden = qty === 0;
     btn.hidden = qty > 0;
     if (document.activeElement !== input || qty === 0) input.value = qty;
@@ -267,6 +293,281 @@
   document.querySelectorAll('[data-add-form]').forEach(syncForm);
   if (state.count === 0 && state.hold && window.fetch) refreshCart();
 
+  /* Plant picker: shoppers choose the exact plants they buy, one photo per plant, held for their cart
+     (Plant Stock through the App Proxy; contract in its docs/plant-picker-storefront.md) */
+  var PLANTS_UNAVAILABLE = 'Plants are unavailable right now. Please try again shortly.';
+  var PICKER_STALE_MS = 30 * 60 * 1000; // photo links last an hour
+
+  function pickerOf(form) { return RA.plantPicker ? form.querySelector('[data-plant-picker]') : null; }
+  function pickerSay(picker, which, msg) {
+    var el = picker.querySelector('[data-picker-' + which + ']');
+    el.textContent = msg || '';
+    el.hidden = !msg;
+  }
+  function inCart(id) { return state.plants.indexOf(String(id)) !== -1; }
+  // 'loading', 'ready', 'unavailable', or 'off' (Plant Stock doesn't know this pot size: add as before)
+  function setPickerMode(form, mode) {
+    var picker = pickerOf(form);
+    picker.pick.mode = mode;
+    picker.hidden = mode === 'off';
+    if (mode === 'off') form.removeAttribute('data-picking');
+    else form.setAttribute('data-picking', '');
+    if (mode === 'unavailable') {
+      picker.querySelector('[data-picker-grid]').innerHTML = '';
+      pickerSay(picker, 'status', '');
+      pickerSay(picker, 'error', PLANTS_UNAVAILABLE);
+    }
+    syncForm(form);
+    syncAddButton(form);
+  }
+  function syncAddButton(form) {
+    var pick = pickerOf(form).pick;
+    var btn = form.querySelector('[data-add-button]');
+    var n = pick.selected.length;
+    if (pick.mode === 'off') { btn.textContent = 'Add to cart'; btn.disabled = false; return; }
+    var choosable = pick.plants.some(function (p) { return !inCart(p.id); });
+    btn.textContent = n ? 'Add ' + n + (n === 1 ? ' plant' : ' plants') + ' to cart' : 'Add to cart';
+    btn.disabled = pick.mode !== 'ready' || !choosable;
+  }
+  function renderPlants(form) {
+    var picker = pickerOf(form);
+    var pick = picker.pick;
+    var grid = picker.querySelector('[data-picker-grid]');
+    var total = pick.plants.length;
+    pick.selected = pick.selected.filter(function (id) {
+      return !inCart(id) && pick.plants.some(function (p) { return p.id === id; });
+    });
+    grid.innerHTML = '';
+    pick.plants.forEach(function (plant, i) {
+      var li = document.createElement('li');
+      var btn = document.createElement('button');
+      var img = document.createElement('img');
+      var label = 'Plant ' + (i + 1) + ' of ' + total;
+      var mine = inCart(plant.id);
+      btn.type = 'button';
+      btn.className = 'picker__plant';
+      btn.setAttribute('data-plant-id', plant.id);
+      btn.setAttribute('aria-pressed', pick.selected.indexOf(plant.id) !== -1 ? 'true' : 'false');
+      btn.setAttribute('aria-label', mine ? label + ', in your cart' : label);
+      img.src = plant.photo;
+      img.alt = '';
+      img.loading = 'lazy';
+      btn.appendChild(img);
+      if (mine) {
+        var badge = document.createElement('span');
+        badge.className = 'picker__badge';
+        badge.textContent = 'In your cart';
+        btn.appendChild(badge);
+        btn.disabled = true;
+      }
+      li.appendChild(btn);
+      grid.appendChild(li);
+    });
+    var choosable = pick.plants.some(function (p) { return !inCart(p.id); });
+    pickerSay(picker, 'status', !total ? 'This size is sold out.' : choosable ? '' : 'All of these plants are in your cart.');
+    syncAddButton(form);
+  }
+  // Answers for an older pot size, or from before a newer request, are ignored
+  function loadPlants(form) {
+    var picker = pickerOf(form);
+    var pick = picker.pick || (picker.pick = { plants: [], selected: [], loadedAt: 0, request: 0 });
+    var variant = variantField(form).value;
+    var request = ++pick.request;
+    if (pick.variant !== variant) {
+      pick.variant = variant;
+      pick.plants = [];
+      pick.selected = [];
+      picker.querySelector('[data-picker-grid]').innerHTML = '';
+    }
+    pickerSay(picker, 'error', '');
+    pickerSay(picker, 'status', pick.plants.length ? '' : 'Loading plants…');
+    setPickerMode(form, 'loading');
+    return loadCartToken()
+      .then(function (token) {
+        return fetch(routes.plants + '?variant=' + encodeURIComponent(variant) + '&cartToken=' + encodeURIComponent(token), { headers: { 'Accept': 'application/json' } })
+          .then(function (res) {
+            return res.json().catch(function () { return null; }).then(function (data) { return { status: res.status, data: data }; });
+          });
+      })
+      .catch(function () { return { status: 0, data: null }; })
+      .then(function (r) {
+        if (request !== pick.request) return;
+        if (r.status === 200 && r.data && Array.isArray(r.data.plants)) {
+          pick.plants = r.data.plants;
+          pick.loadedAt = Date.now();
+          setPickerMode(form, 'ready');
+          renderPlants(form);
+          return;
+        }
+        var code = r.data && r.data.error;
+        if (code === 'not_found') { setPickerMode(form, 'off'); return; }
+        if (code === 'invalid') console.error('Plant Stock rejected a plants request', r.data);
+        setPickerMode(form, 'unavailable');
+      });
+  }
+  // Quick views load their plants when opened; a list over 30 minutes old is loaded again
+  function openPickers(scope) {
+    scope.querySelectorAll('[data-add-form]').forEach(function (form) {
+      var picker = pickerOf(form);
+      if (!picker) return;
+      var pick = picker.pick;
+      if (!pick || pick.mode === 'unavailable' || pick.variant !== variantField(form).value || Date.now() - pick.loadedAt > PICKER_STALE_MS) loadPlants(form);
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var tile = e.target.closest('.picker__plant');
+    if (!tile || tile.disabled) return;
+    var form = tile.closest('[data-add-form]');
+    var picker = pickerOf(form);
+    var pick = picker.pick;
+    if (pick.mode !== 'ready') return;
+    var id = parseInt(tile.getAttribute('data-plant-id'), 10);
+    var at = pick.selected.indexOf(id);
+    if (at === -1) {
+      if (state.count + pick.selected.length + 1 > limit) { pickerSay(picker, 'error', limitMsg); return; }
+      pick.selected.push(id);
+    } else {
+      pick.selected.splice(at, 1);
+    }
+    tile.setAttribute('aria-pressed', at === -1 ? 'true' : 'false');
+    pickerSay(picker, 'error', '');
+    syncAddButton(form);
+  });
+
+  // Hold the chosen plants first, then add one cart line per plant; give the holds back if that fails
+  function addPlants(form) {
+    var picker = pickerOf(form);
+    var pick = picker.pick;
+    var btn = form.querySelector('[data-add-button]');
+    var ids = pick.selected.slice();
+    if (pick.mode !== 'ready' || btn.classList.contains('is-loading')) return;
+    if (!ids.length) { pickerSay(picker, 'error', 'Tap a photo to choose a plant.'); return; }
+    if (state.count + ids.length > limit) { pickerSay(picker, 'error', limitMsg); return; }
+    var variant = parseInt(pick.variant, 10);
+    var token;
+    btn.classList.add('is-loading');
+    pickerSay(picker, 'error', '');
+    loadCartToken()
+      .then(function (t) {
+        token = t;
+        return postJSON(routes.plantHolds, { cartToken: token, plants: ids });
+      })
+      .then(function (r) {
+        if (r.status === 201 || r.status === 200) {
+          var items = ids.map(function (id) { return { id: variant, quantity: 1, properties: { _plant: String(id) } }; });
+          return postJSON(routes.cartAdd, { items: items }).then(function (added) {
+            if (added.status !== 200) {
+              postJSON(routes.plantHolds + '/release', { cartToken: token, plants: ids }).catch(function () {});
+              pickerSay(picker, 'error', (added.data && (added.data.description || added.data.message)) || 'Could not add to cart.');
+              return;
+            }
+            pick.selected = [];
+            showToast(ids.length === 1 ? 'Plant added to cart' : ids.length + ' plants added to cart');
+            return refreshCart().then(function () { renderPlants(form); });
+          });
+        }
+        var code = r.data && r.data.error;
+        var msg = r.data && r.data.message;
+        if (code === 'taken') {
+          // Someone else got there first: show what's still free, keep the rest of the choice
+          var gone = (r.data.plants || []).map(Number);
+          pick.selected = pick.selected.filter(function (id) { return gone.indexOf(id) === -1; });
+          return loadPlants(form).then(function () {
+            if (pick.mode === 'ready') pickerSay(picker, 'error', msg || 'Someone else just chose that plant. Please pick another.');
+          });
+        }
+        if (code === 'too_many_holds') { pickerSay(picker, 'error', msg || 'You’re holding as many plants as we allow right now.'); return; }
+        if (code === 'not_found') { setPickerMode(form, 'off'); return; }
+        if (code === 'invalid') console.error('Plant Stock rejected a plant hold request', r.data);
+        setPickerMode(form, 'unavailable');
+      })
+      .catch(function () { setPickerMode(form, 'unavailable'); })
+      .finally(function () { btn.classList.remove('is-loading'); });
+  }
+
+  if (RA.plantPicker && window.fetch) {
+    // The product page loads its plants straight away; quick views wait until they're opened
+    document.querySelectorAll('[data-plant-picker]').forEach(function (picker) {
+      var form = picker.closest('[data-add-form]');
+      form.setAttribute('data-picking', '');
+      syncForm(form);
+      if (!picker.closest('dialog')) loadPlants(form);
+    });
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState !== 'visible') return;
+      document.querySelectorAll('[data-plant-picker]').forEach(function (picker) {
+        var dlg = picker.closest('dialog');
+        if (picker.pick && picker.pick.mode === 'ready' && (!dlg || dlg.open) && Date.now() - picker.pick.loadedAt > PICKER_STALE_MS) {
+          loadPlants(picker.closest('[data-add-form]'));
+        }
+      });
+    });
+  }
+
+  /* Cart page: chosen plants. Removing one gives its hold back; Checkout keeps them all for 30 more minutes */
+  var plantError = document.querySelector('[data-plant-error]');
+  function plantLines() { return Array.prototype.slice.call(document.querySelectorAll('[data-cart-form] [data-plant]')); }
+  document.addEventListener('click', function (e) {
+    var remove = e.target.closest('[data-plant-remove]');
+    if (!remove || !window.fetch || e.metaKey || e.ctrlKey || e.shiftKey) return;
+    e.preventDefault();
+    var plant = parseInt(remove.getAttribute('data-plant-remove'), 10);
+    loadCartToken()
+      .then(function (token) { return postJSON(routes.plantHolds + '/release', { cartToken: token, plants: [plant] }); })
+      .catch(function () {})
+      .then(function () { window.location.href = remove.href; });
+  });
+  // Resolves true when every chosen plant in the cart is still held for it
+  function refreshPlants() {
+    var lines = plantLines();
+    if (!lines.length) return Promise.resolve(true);
+    var ids = lines.map(function (li) { return parseInt(li.getAttribute('data-plant'), 10); });
+    return loadCartToken()
+      .then(function (token) { return postJSON(routes.plantHolds + '/refresh', { cartToken: token, plants: ids }); })
+      .then(function (r) {
+        if (r.status === 200 || r.status === 201) return true;
+        var code = r.data && r.data.error;
+        if (code === 'taken') return removeTakenPlants((r.data.plants || []).map(String));
+        if (code === 'too_many_holds') { showPlantError(r.data.message || 'You’re holding as many plants as we allow right now.'); return false; }
+        if (code === 'invalid') console.error('Plant Stock rejected a plant hold refresh', r.data);
+        showPlantError(PLANTS_UNAVAILABLE);
+        return false;
+      }, function () { showPlantError(PLANTS_UNAVAILABLE); return false; });
+  }
+  function showPlantError(msg) {
+    if (!plantError) return;
+    plantError.textContent = msg || '';
+    plantError.hidden = !msg;
+  }
+  // Takes the plants someone else got out of the cart, then reloads it and says which they were
+  var TAKEN_NOTE = 'raPlantsTaken';
+  function removeTakenPlants(ids) {
+    var updates = {};
+    var names = [];
+    plantLines().forEach(function (li) {
+      if (ids.indexOf(li.getAttribute('data-plant')) === -1) return;
+      updates[li.getAttribute('data-line-key')] = 0;
+      names.push(li.getAttribute('data-plant-name'));
+    });
+    if (!names.length) { showPlantError(PLANTS_UNAVAILABLE); return Promise.resolve(false); }
+    var msg = 'Someone else just chose ' + (names.length === 1 ? 'one of your plants' : names.length + ' of your plants') +
+      ' (' + names.join(', ') + '), so we’ve taken ' + (names.length === 1 ? 'it' : 'them') + ' out of your cart. Please choose another.';
+    return postJSON(routes.cartUpdate, { updates: updates })
+      .catch(function () {})
+      .then(function () {
+        try { sessionStorage.setItem(TAKEN_NOTE, msg); } catch (err) { /* the message is then lost on reload */ }
+        window.location.reload();
+        return false;
+      });
+  }
+  if (plantError) {
+    try {
+      var takenNote = sessionStorage.getItem(TAKEN_NOTE);
+      if (takenNote) { sessionStorage.removeItem(TAKEN_NOTE); showPlantError(takenNote); }
+    } catch (err) { /* no note to show */ }
+  }
+
   /* Cart page: no more than the plant limit per order */
   var cartPageForm = document.querySelector('[data-cart-form]');
   if (cartPageForm) {
@@ -328,7 +629,6 @@
     var UNAVAILABLE = 'Pickup times are unavailable right now. Please try again shortly.';
     var GONE = 'That pickup time is no longer available. Please choose another.';
     var days = null;
-    var cartToken = '';
     var holdId = state.hold || '';
     var loading = false;
     var busy = false;
@@ -365,13 +665,6 @@
       if (!days) return;
       dateSelect.disabled = on;
       windowSelect.disabled = on || windowSelect.options.length < 2;
-    }
-    // Holds belong to a cart, which Plant Stock knows by its token
-    function loadCartToken() {
-      if (cartToken) return Promise.resolve(cartToken);
-      return fetch(routes.cart, { headers: { 'Accept': 'application/json' } })
-        .then(function (res) { return res.json(); })
-        .then(function (cart) { cartToken = cart.token; return cartToken; });
     }
     // With the cart token, the slot this cart holds stays listed while other carts' holds are left out
     function loadSlots(keepDate, keepWindow) {
@@ -487,10 +780,11 @@
           focusPickup();
           return;
         }
-        // Keep the hold another 30 minutes (or take one, for a cart saved before holds) and
-        // leave for checkout only if Plant Stock agrees
-        (holdId ? refreshHold() : placeHold()).then(function (ok) {
-          if (!ok) return;
+        // Keep the pickup hold and the chosen plants another 30 minutes (or take a pickup hold, for a
+        // cart saved before holds) and leave for checkout only if Plant Stock agrees to both
+        showPlantError('');
+        Promise.all([holdId ? refreshHold() : placeHold(), refreshPlants()]).then(function (results) {
+          if (!results[0] || !results[1]) return;
           confirmed = true;
           checkoutBtn.click();
         });
